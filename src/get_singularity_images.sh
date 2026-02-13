@@ -26,6 +26,18 @@ base_conf=$wf_assets/base.config
 # num_imgs=10
 readonly registry_protocol org_name wf_assets base_conf
 
+nxf_format_basename () {
+  local tag=$1
+  local sha=$2
+  printf %s-%s-%s.img $org_name $tag $sha
+}
+
+docker_uri () {
+  local tag=$1
+  local sha=$2
+  printf docker://%s/%s:%s $org_name $tag $sha
+}
+
 readarray -t tag_lines < <(grep '"ont' $base_conf)
 tag_lines=("${tag_lines[@]#*/}")
 tag_lines=("${tag_lines[@]%\}\"}")
@@ -48,12 +60,13 @@ unset tag sha
 
 for atom_line in "${atoms[@]}"; do
   read -r tag sha <<< "$atom_line"
-  basename_=${org_name}-${tag}-${sha}.img
+  basename_=$(nxf_format_basename $tag $sha)
 
-  library_img="${NXF_SINGULARITY_LIBRARYDIR}"/$basename_
-  cache_img="${NXF_SINGULARITY_CACHEDIR}"/$basename_
-  [[ -e "$library_img" || -e "$cache_img" ]] && continue
+  [[ -e "${NXF_SINGULARITY_LIBRARYDIR}"/$basename_ ]] && continue
 
-  img_uri="${registry_protocol}${org_name}/${tag}:${sha}"
-  singularity pull $cache_img $img_uri
+  path_="${NXF_SINGULARITY_CACHEDIR}"/$basename_
+  [[ -e "$path_" ]] && singularity inspect "$path_" 1>/dev/null 2>&1 && continue
+
+  uri=$(docker_uri $tag $sha)
+  singularity pull $path_ $uri
 done
