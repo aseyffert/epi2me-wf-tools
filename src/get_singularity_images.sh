@@ -48,18 +48,26 @@ sha_lines=("${sha_lines[@]//[\"\|=]}")
 
 declare -A atoms
 for tag_line in "${tag_lines[@]}"; do
-  read -r tag key <<< "$tag_line"
+  IFS=' ' read -r tag key rest <<< "$tag_line"
+  [[ -z $rest ]] || {
+    echo 'Too many words in $tag_line (expected two):' "$tag_line"
+    exit 1
+  }
   atoms[$key]=$tag
 done
-unset key
+unset key rest
 for sha_line in "${sha_lines[@]}"; do
-  read -r key sha <<< "$sha_line"
+  IFS=' ' read -r key sha rest <<< "$sha_line"
+  [[ -z $rest ]] || {
+    echo 'Too many words in $sha_line (expected two):' "$sha_line"
+    exit 2
+  }
   atoms[$key]+=" $sha"
 done
 unset tag sha
 
 for atom_line in "${atoms[@]}"; do
-  read -r tag sha <<< "$atom_line"
+  IFS=' ' read -r tag sha <<< "$atom_line"
   basename_=$(nxf_format_basename $tag $sha)
 
   [[ -e "${NXF_SINGULARITY_LIBRARYDIR}"/$basename_ ]] && continue
