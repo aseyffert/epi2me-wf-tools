@@ -16,7 +16,7 @@
 #  (*) More accurately: it expects that (grep '"sha\|"ont' base.config) yields
 #   what it would if base.config were unaltered.
 
-command -v singularity || module load chpc/singularity
+command -v singularity >/dev/null || module load chpc/singularity
 
 # TODO: Some of these should probably sourced from a central config(?)
 registry_protocol='docker://'
