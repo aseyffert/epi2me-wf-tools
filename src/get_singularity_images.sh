@@ -16,7 +16,7 @@
 #  (*) More accurately: it expects that (grep '"sha\|"ont' base.config) yields
 #   what it would if base.config were unaltered.
 
-command -v singularity >/dev/null || module load chpc/singularity
+command -v singularity &>/dev/null || module load chpc/singularity
 
 # TODO: Some of these should probably sourced from a central config(?)
 registry_protocol='docker://'
@@ -50,7 +50,7 @@ declare -A atoms
 for tag_line in "${tag_lines[@]}"; do
   IFS=' ' read -r tag key rest <<< "$tag_line"
   [[ -z $rest ]] || {
-    echo 'Too many words in $tag_line (expected two):' "$tag_line"
+    echo >&2 'Too many words in $tag_line (expected two):' "$tag_line"
     exit 1
   }
   atoms[$key]=$tag
@@ -59,7 +59,7 @@ unset key rest
 for sha_line in "${sha_lines[@]}"; do
   IFS=' ' read -r key sha rest <<< "$sha_line"
   [[ -z $rest ]] || {
-    echo 'Too many words in $sha_line (expected two):' "$sha_line"
+    echo >&2 'Too many words in $sha_line (expected two):' "$sha_line"
     exit 2
   }
   atoms[$key]+=" $sha"
