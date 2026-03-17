@@ -9,7 +9,8 @@
 #  ourselves.
 #
 # This script does this without any user intervention, but expects that:
-#  - The workflow resides in $HOME/.nextflow/assets,
+#  - The $NXF_HOME environment variable is set,
+#  - The workflow resides in $NXF_HOME/assets,
 #  - The workflow's base.config file hasn't been altered, (*)
 #  - The NXF_SINGULARITY_LIBRARYDIR environment variable is set, and
 #  - The NXF_SINGULARITY_CACHEDIR environment variable is set.
@@ -18,10 +19,10 @@
 
 command -v singularity &>/dev/null || module load chpc/singularity
 
-# TODO: Some of these should probably sourced from a central config(?)
+# TODO: Some of these should probably be sourced from a central config(?)
 registry_protocol='docker://'
 org_name='ontresearch'
-wf_assets=$HOME/.nextflow/assets/epi2me-labs/wf-human-variation
+wf_assets=$NXF_HOME/assets/epi2me-labs/wf-human-variation
 base_conf=$wf_assets/base.config
 # num_imgs=10
 readonly registry_protocol org_name wf_assets base_conf
