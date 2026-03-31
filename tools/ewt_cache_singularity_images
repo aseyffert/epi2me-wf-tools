@@ -17,6 +17,8 @@
 #  (*) More accurately: it expects that (grep '"sha\|"ont' base.config) yields
 #   what it would if base.config were unaltered.
 
+echo 'Not Implemented'; exit 0
+
 command -v singularity &>/dev/null || module load chpc/singularity
 
 # TODO: Some of these should probably be sourced from a central config(?)
