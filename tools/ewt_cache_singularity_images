@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # 
 # Resolves and pulls (via singularity) the container images required by a
-#  epi2me-labs/wf-human-variation Nextflow workflow from hub.docker.com.
+#   epi2me-labs/wf-human-variation Nextflow workflow from hub.docker.com.
 #
 # Given the requirement that data transfers should be kept to a minimum on the
-#  CHPC's login nodes, it's best to run the wf-human-variation workflow with
-#  --offline enabled. Hence, we must manage the workflow's container images
-#  ourselves.
+#   CHPC's login nodes, it's best to run the wf-human-variation workflow with
+#   --offline enabled. Hence, we must manage the workflow's container images
+#   ourselves.
 #
 # This script does this without any user intervention, but expects that:
 #  - The $NXF_HOME environment variable is set,
