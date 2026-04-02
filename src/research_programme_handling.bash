@@ -6,6 +6,10 @@
 #   correspond to research programmes under which they may request CHPC
 #   resources.
 
+# FIXME: This function should call a scipt (located in ../tools) that resolves
+#         the research programme string, and then just set it. Having this
+#         function do it all denies the user a tool for deriving such strings,
+#         which could be useful.
 set_research_programme () {
   local -a programmes
   read -ra programmes < <(id -Gn | cut -d ' ' -f 2-)
