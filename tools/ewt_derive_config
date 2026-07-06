@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+#
+# Derives a site-specfic config via qstat.
+
+declare -A vals
+queued=($(qstat -Qf serial | grep max_queued | grep -oE '[0-9]+'))
+(( ${#queued[@]} == 1 )) && vals["max_queued"]=$queued
+walltime=($(qstat -Qf serial | grep walltime | grep -oE '([0-9]{2}:){2}[0-9]+'))
+(( ${#walltime[@]} == 1 )) && vals["max_walltime"]=${walltime%%:*}
+derived_vals="${!vals[@]}"
+for vname in queued walltime; do
+  if ! [[ $derived_vals =~ $vname ]]; then
+    echo >&2 "ERROR: Could not derive max_$vname; got ${!vname}."
+    exit 2
+  fi
+done
+[[ -v NXF_HOME && -n $NXF_HOME ]] || exit 3
+cat > $NXF_HOME/config <<- EOF
+// Provides CHPC-specific nextflow configuration required to run EPI2ME Labs's
+//   bioinformatics workflows.
+// Nominally, this config file will be passed to nextflow via its -c/--config
+//   option; i.e., this config is presumed to take precedence over a workflow's
+//   {base,nextflow}.config files, but not over options passed at runtime.
+
+singularity {
+  enabled = true
+  autoMounts = true
+  envWhitelist = "CUDA_VISIBLE_DEVICES"                   // NOTE: untested
+}
+process."withLabel:gpu".containerOptions = "--nv"         // NOTE: untested
+
+profiles {
+  // NOTE: The standard profile block here mostly serves to nullify what EPI2ME
+  //        usually sets up in base.config. Since singularity is (effectively)
+  //        the only option on the CHPC, epi2me-wf-tools handles its
+  //        configuration outside the profiles scope.
+  standard {
+    docker.enabled = false
+    process."withLabel:gpu".containerOptions = "--nv"     // NOTE: untested
+  }
+
+  // NOTE: The head job itself (which handles processes via qsub calls) can run
+  //        on any (suitable) queue. The queue specified here controls the
+  //        queue to which said head job should submit jobs.
+  head_job {
+    process {
+      executor = 'pbspro'
+      clusterOptions = "-P \${env('RESEARCH_PROGRAMME')}"
+      module = ['chpc/singularity']
+
+      // NB: When changing queue, check (or change) time and queueSize.
+      queue = 'serial'
+      time = ${vals["max_walltime"]}.h
+    }
+    executor.\$pbspro.queueSize = ${vals["max_queued"]}
+  }
+}
+EOF
