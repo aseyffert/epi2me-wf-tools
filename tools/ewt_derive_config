@@ -41,30 +41,21 @@ done
 cat >"$NXF_HOME/config" <<-EOF
 // Provides CHPC-specific nextflow configuration required to run EPI2ME Labs's
 //   bioinformatics workflows.
-// Nominally, this config file will be passed to nextflow via its -c/--config
-//   option; i.e., this config is presumed to take precedence over a workflow's
-//   {base,nextflow}.config files, but not over options passed at runtime.
-
-singularity {
-  enabled = true
-  autoMounts = true
-  envWhitelist = "CUDA_VISIBLE_DEVICES"                   // NOTE: untested
-}
-process."withLabel:gpu".containerOptions = "--nv"         // NOTE: untested
 
 profiles {
-  // NOTE: The standard profile block here mostly serves to nullify what EPI2ME
-  //        usually sets up in base.config. Since singularity is (effectively)
-  //        the only option on the CHPC, epi2me-wf-tools handles its
-  //        configuration outside the profiles scope.
-  standard {
-    docker.enabled = false
-    process."withLabel:gpu".containerOptions = "--nv"     // NOTE: untested
+  singularity {
+    process {
+      errorStrategy = '${vals['errorStrategy']}'
+      maxRetries = ${vals['maxRetries']}
+    }
+    // envWhitelist = "CUDA_VISIBLE_DEVICES"                   // NOTE: untested
   }
 
   // NOTE: The head job itself (which handles processes via qsub calls) can run
   //        on any (suitable) queue. The queue specified here controls the
   //        queue to which said head job should submit jobs.
+  // NOTE: This profile is intended for use alongside the singularity profile;
+  //        to use it, pass \`-p singularity,head_job\` to \`nextflow run\`.
   head_job {
     process {
       executor = 'pbspro'
@@ -73,9 +64,9 @@ profiles {
 
       // NB: When changing queue, check (or change) time and queueSize.
       queue = 'serial'
-      time = ${vals["max_walltime"]}.h
+      time = ${vals['max_walltime']}.h
     }
-    executor.\$pbspro.queueSize = ${vals["max_queued"]}
+    executor.\$pbspro.queueSize = ${vals['max_queued']}
   }
 }
 EOF
