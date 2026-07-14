@@ -2,7 +2,28 @@
 #
 # Derives a site-specfic config via qstat.
 
-declare -A vals
+_strats=('terminate' 'finish' 'ignore' 'retry')
+
+_default_maxRetries=5
+
+if (($# <= 1)); then
+  echo >&2 "ERROR: Too many arguments; expected at most one."
+  exit 1
+fi
+
+declare -A vals=(['errorStrategy']='retry' ['maxRetries']=$_default_maxRetries)
+set -- "${1,,}" "$1"
+case $1 in
+'') : ;;
+'^[0-9]+$') vals['maxRetries']=$1 ;;
+'^[a-z]+$') vals['errorStrategy']=$1 ;;
+*) echo >&2 "ERROR: Could not parse \$1; got: $2" ;;
+esac
+if ! [[ " ${_strats[*]} " == *" ${vals['errorStrategy']} "* ]]; then
+  echo >&2 "ERROR: Bad errorStrategy; must be one of: ${_strats[*]}"
+  exit 2
+fi
+
 read -ra queued < <(qstat -Qf serial | grep max_queued | grep -oE '[0-9]+')
 read -ra walltime < <(
   qstat -Qf serial | grep walltime | grep -oE '([0-9]{2}:){2}[0-9]+'
@@ -13,11 +34,11 @@ derived_vals=${!vals[*]}
 for vname in queued walltime; do
   if ! [[ $derived_vals =~ $vname ]]; then
     echo >&2 "ERROR: Could not derive max_$vname; got ${!vname}."
-    exit 2
+    exit 3
   fi
 done
-[[ -v NXF_HOME && -n $NXF_HOME ]] || exit 3
-cat > $NXF_HOME/config <<- EOF
+[[ -v NXF_HOME && -n $NXF_HOME ]] || exit 4
+cat >"$NXF_HOME/config" <<-EOF
 // Provides CHPC-specific nextflow configuration required to run EPI2ME Labs's
 //   bioinformatics workflows.
 // Nominally, this config file will be passed to nextflow via its -c/--config
