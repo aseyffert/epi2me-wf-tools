@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# Derives values for various queue stats via qstat.
+#
+# Given a queue name (as the first positional argument), this script prints (to
+# stdout) an unordered sequence of key:value pairs (each on a new line), each
+# associated with a single queue stat; e.g., the maximum number of jobs allowed
+# in said queue per user is encoded as "max_queued:40" (for example).
+
+# NB:   The patterns array's keys must be a strict superset of the other
+#       arrays' keys.
+declare -A patterns rstrips
+
+patterns['max_queued']='[0-9]+'
+
+patterns['max_walltime']='([0-9]{2}:){2}[0-9]+'
+rstrips['max_walltime']=':*'
+
+if qstat -Q "$1" >/dev/null 2>&1; then
+  qname="$1"
+else
+  echo >&2 "ERROR: Unknown queue: $1."
+  exit 1
+fi
+
+# Checks that rstrips's keys map onto elements of patterns.
+for var in "${!rstrips[@]}"; do
+  [[ " ${!patterns[*]} " == *" $var "* ]] || exit 2
+done
+
+derive_val() {
+  # Parses its stdin based on the provided positional parameters, and prints
+  #   a key:value pair to stdout.
+  local val extra
+  read -r val extra < <(grep "$1" | grep -oE "$2")
+  [[ -n $3 ]] && val=${val%%"$3"}
+  [[ -n $val ]] && echo "$1:$val" || return 1
+  [[ -z $extra ]] || echo >&2 "WARNING: Found extra vals for $1: $extra."
+}
+
+declare -A pipes pids
+
+_cleanup_fifos() {
+  local fifo
+  for fifo in "${pipes[@]}"; do
+    [[ -p $fifo ]] && rm "$fifo"
+  done
+}
+trap _cleanup_fifos EXIT
+
+# Sets up a subshell for each var (which all block until we pass the output of
+#   qstat to them later, via tee), so that we only need to invoke qstat once.
+for var in "${!patterns[@]}"; do
+  mkfifo "$(mktemp -u)"
+  pipes[$var]="$_"
+  (derive_val "$var" "${patterns[$var]}" "${rstrips[$var]}") <"${pipes[$var]}" &
+  pids[$var]=$!
+done
+
+# Invokes qstat for the queue of interest, and passes (copies of) the output to
+#   the subshells set up earlier via the named pipes in pipes.
+qstat -Qf "$qname" | tee "${pipes[@]}" >/dev/null
+
+for var in "${!pids[@]}"; do
+  wait "${pids[$var]}" || missing_vars+=("$var")
+done
+if [[ -v missing_vars ]]; then
+  echo >&2 "ERROR: No value found for: ${missing_vars[*]}."
+  exit 3
+fi

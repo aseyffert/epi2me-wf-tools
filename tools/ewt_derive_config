@@ -24,20 +24,21 @@ if ! [[ " ${_strats[*]} " == *" ${vals['errorStrategy']} "* ]]; then
   exit 2
 fi
 
-read -ra queued < <(qstat -Qf serial | grep max_queued | grep -oE '[0-9]+')
-read -ra walltime < <(
-  qstat -Qf serial | grep walltime | grep -oE '([0-9]{2}:){2}[0-9]+'
-)
-((${#queued[@]} == 1)) && vals["max_queued"]=${queued[0]}
-((${#walltime[@]} == 1)) && vals["max_walltime"]=${walltime%%:*}
-derived_vals=${!vals[*]}
-for vname in queued walltime; do
-  if ! [[ $derived_vals =~ $vname ]]; then
-    echo >&2 "ERROR: Could not derive max_$vname; got ${!vname}."
-    exit 3
-  fi
+while IFS=':' read -r var val; do
+  vals[$var]=$val
+done < <(_ewt_queue_stats 'serial')
+
+_vars_used=('max_queued' 'max_walltime')
+_derived_vars=${!vals[*]}
+for var in "${_vars_used[@]}"; do
+  [[ " $_derived_vars " == *" $var "* ]] || missing_vars+=("$var")
 done
-[[ -v NXF_HOME && -n $NXF_HOME ]] || exit 4
+if [[ -v missing_vars ]]; then
+  echo >&2 "ERROR: Missing vals for: ${missing_vars[*]}"
+  exit 4
+fi
+
+[[ -v NXF_HOME && -n $NXF_HOME ]] || exit 5
 cat >"$NXF_HOME/config" <<-EOF
 // Provides CHPC-specific nextflow configuration required to run EPI2ME Labs's
 //   bioinformatics workflows.
