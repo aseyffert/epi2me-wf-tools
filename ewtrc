@@ -84,9 +84,7 @@ export NXF_ANSI_LOG='false'
 # This is actually just a call to `module use` that prepends the appropriate
 #   directory (which houses the nextflow module, among others) to MODULEPATH.
 module load chpc/BIOMODULES
-
-module load nextflow 2>/dev/null
-module load chpc/singularity 2>/dev/null
+module load nextflow chpc/singularity 2>/dev/null
 
 ### Compute node-only
 [[ $(hostname) =~ cnode[0-9]+ ]] && {
