@@ -41,7 +41,6 @@ for _nxf_dir in NXF_{WORK,SINGULARITY_CACHEDIR}; do
 done
 unset _nxf_fallbacks _nxf_dir
 
-_hostname=$(hostname)
 
 ### Shared environment --- loaded both on compute and non-compute nodes
 if _pth=$(realpath "${BASH_SOURCE[0]}") && EWT_HOME=$(dirname "$_pth"); then
@@ -73,11 +72,10 @@ module load nextflow 2>/dev/null
 module load chpc/singularity 2>/dev/null
 
 ### Compute node-only
-if [[ $_hostname =~ cnode[0-9]+ ]]; then
+[[ $(hostname) =~ cnode[0-9]+ ]] && {
   export NXF_OFFLINE='true'
-  unset _hostname
   return
-fi
+}
 
 ### Other nodes
 export NXF_DISABLE_CHECK_LATEST='true'
@@ -102,4 +100,3 @@ tless() {
 alias cd="cd -P"
 
 export SINGULARITY_DISABLE_CACHE='true'
-unset _hostname
