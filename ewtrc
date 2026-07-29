@@ -14,10 +14,10 @@
 #   has direct control over. (To specify your own values for these, export them
 #   before sourcing this script.)
 
-if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
-  echo >&2 "ERROR: $0 not sourced."
+[[ ${BASH_SOURCE[0]} != "$0" ]] || {
+  echo >&2 "ERROR: ${BASH_SOURCE[0]} (likely) not sourced, but executed."
   exit 1
-fi
+}
 
 # NOTE:   The fallbacks for NXF_{WORK,SING*} are on lustre to protect $HOME from
 #           heavy I/O loads.
