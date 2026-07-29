@@ -19,38 +19,49 @@
   exit 1
 }
 
+[[ -v EWT_HOME ]] || {
+  echo -n "WARNING: EWT_HOME not set; attempting to derive as fallback..." >&2
+  source src/derive_dirname.bash
+  EWT_HOME=$(derive_dirname "${BASH_SOURCE[0]}") || return 3
+  echo "done."
+}
+
+export USER_LUSTRE=/mnt/lustre/users/$USER
+
 # NOTE:   The fallbacks for NXF_{WORK,SING*} are on lustre to protect $HOME from
 #           heavy I/O loads.
 # NB:     This fallback for NXF_WORK should not be treated as a default!
 #           None of the tools that this package provides are designed to use
 #           a monolithic NXF_WORK directory like this.
-declare -A _nxf_fallbacks=(
-  [NXF_HOME]=$HOME/nextflow_home
-  [NXF_WORK]=/mnt/lustre/users/$USER/nextflow_work
-  [NXF_SINGULARITY_CACHEDIR]=/mnt/lustre/users/$USER/singularity_cache
-)
-for _nxf_dir in "${!_nxf_fallbacks[@]}"; do
-  [[ -v $_nxf_dir ]] || export "$_nxf_dir"="${_nxf_fallbacks[$_nxf_dir]}"
-done
-for _nxf_dir in NXF_{WORK,SINGULARITY_CACHEDIR}; do
-  if [[ $_nxf_dir =~ $HOME/* ]]; then
-    echo >&2 "WARN: To avoid unwanted I/O load on $(dirname "$HOME"), $_nxf_dir \
-      should be located on /mnt/lustre/users/${USER}. \
-      (Current location: ${!_nxf_dir}.)"
-  fi
-done
-unset _nxf_fallbacks _nxf_dir
+: "${NXF_HOME:=$HOME/.nextflow}"
+: "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
+: "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
+_on_home_or_user_lustre=(EWT_HOME NXF_HOME)
+_on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 
-### Shared environment --- loaded both on compute and non-compute nodes
-if _pth=$(realpath "${BASH_SOURCE[0]}") && EWT_HOME=$(dirname "$_pth"); then
-  export EWT_HOME
-  [[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
-else
-  echo >&2 "ERROR: Could not derive EWT_HOME."
-  return 1
-fi
-unset _pth
+_all_safe=1
+for var in "${_on_home_or_user_lustre[@]}"; do
+  [[ ${!var} == $HOME/* || ${!var} == $USER_LUSTRE/* ]] || {
+    echo >&2 "ERROR: $var must be on either $HOME or $USER_LUSTRE."
+    echo >&2 "(Current target: ${!var} )"
+    _all_safe=0
+  }
+done
+for var in "${_on_user_lustre_only[@]}"; do
+  [[ ${!var} == $USER_LUSTRE/* ]] || {
+    echo >&2 "ERROR: $var must be on $USER_LUSTRE."
+    echo >&2 "(Current target: ${!var} )"
+    _all_safe=0
+  }
+done
+((_all_safe)) || return 4
+
+for var in "${_on_home_or_user_lustre[@]}" "${_on_user_lustre_only[@]}"; do
+  export "${var?}"
+done
+
+[[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
 
 # FIXME:  This should be a function definition that uses a script in
 #           $EWT_HOME/tools to resolve the research programme string.
