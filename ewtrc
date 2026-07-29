@@ -19,6 +19,12 @@
   exit 1
 }
 
+_ewtrc_cleanup() {
+  unset -v _on_home_or_user_lustre _on_user_lustre_only _all_safe var
+  unset -f derive_dirname set_research_programme
+}
+trap _ewtrc_cleanup RETURN
+
 [[ -v EWT_HOME ]] || {
   echo -n "WARNING: EWT_HOME not set; attempting to derive as fallback..." >&2
   source src/derive_dirname.bash
