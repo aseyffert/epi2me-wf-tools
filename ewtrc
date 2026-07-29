@@ -14,22 +14,31 @@
 #   has direct control over. (To specify your own values for these, export them
 #   before sourcing this script.)
 
-[[ ${BASH_SOURCE[0]} != "$0" ]] || {
-  echo >&2 "ERROR: ${BASH_SOURCE[0]} (likely) not sourced, but executed."
-  exit 1
-}
-
 _ewtrc_cleanup() {
-  unset -v _on_home_or_user_lustre _on_user_lustre_only _all_safe var
+  unset -v _verbose _all_safe var _on_home_or_user_lustre _on_user_lustre_only
   unset -f derive_dirname set_research_programme
 }
 trap _ewtrc_cleanup RETURN
 
+_verbose=1
+[[ -v PBS_ENVIRONMENT ]] && _verbose=0
+
+[[ ${BASH_SOURCE[0]} != "$0" ]] || {
+  ((_verbose)) && {
+    echo >&2 "ERROR: ${BASH_SOURCE[0]} (likely) not sourced, but executed."
+  }
+  exit 1
+}
+
 [[ -v EWT_HOME ]] || {
-  echo -n "WARNING: EWT_HOME not set; attempting to derive as fallback..." >&2
+  ((_verbose)) && {
+    echo -n "WARNING: EWT_HOME not set; attempting to derive as fallback..." >&2
+  }
   source src/derive_dirname.bash
   EWT_HOME=$(derive_dirname "${BASH_SOURCE[0]}") || return 3
-  echo "done."
+  ((_verbose)) && {
+    echo "done."
+  }
 }
 
 export USER_LUSTRE=/mnt/lustre/users/$USER
@@ -49,15 +58,19 @@ _on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 _all_safe=1
 for var in "${_on_home_or_user_lustre[@]}"; do
   [[ ${!var} == $HOME/* || ${!var} == $USER_LUSTRE/* ]] || {
-    echo >&2 "ERROR: $var must be on either $HOME or $USER_LUSTRE."
-    echo >&2 "(Current target: ${!var} )"
+    ((_verbose)) && {
+      echo >&2 "ERROR: $var must be on either $HOME or $USER_LUSTRE."
+      echo >&2 "(Current target: ${!var} )"
+    }
     _all_safe=0
   }
 done
 for var in "${_on_user_lustre_only[@]}"; do
   [[ ${!var} == $USER_LUSTRE/* ]] || {
-    echo >&2 "ERROR: $var must be on $USER_LUSTRE."
-    echo >&2 "(Current target: ${!var} )"
+    ((_verbose)) && {
+      echo >&2 "ERROR: $var must be on $USER_LUSTRE."
+      echo >&2 "(Current target: ${!var} )"
+    }
     _all_safe=0
   }
 done
@@ -75,7 +88,7 @@ done
 #           RESEARCH_PROGRAMME string for a head job-style run via the -v option
 #           to qsub (or the corresponding #PBS line in the job script).
 source src/research_programme_handling.bash
-[[ -v RESEARCH_PROGRAMME ]] || set_research_programme -p -q
+[[ -v RESEARCH_PROGRAMME ]] || set_research_programme -p -q >/dev/null 2>&1
 
 # FIXME:  This should not be set to false for interactive runs; i.e., when the
 #           user starts an interactive PBS job and runs nextflow themselves.
