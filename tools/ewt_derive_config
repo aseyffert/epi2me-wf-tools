@@ -6,10 +6,10 @@ _strats=('terminate' 'finish' 'ignore' 'retry')
 
 _default_maxRetries=5
 
-if (($# <= 1)); then
+(($# <= 1)) || {
   echo >&2 "ERROR: Too many arguments; expected at most one."
   exit 1
-fi
+}
 
 declare -A vals=(['errorStrategy']='retry' ['maxRetries']=$_default_maxRetries)
 set -- "${1,,}" "$1"
@@ -19,10 +19,10 @@ case $1 in
 '^[a-z]+$') vals['errorStrategy']=$1 ;;
 *) echo >&2 "ERROR: Could not parse \$1; got: $1" ;;
 esac
-if ! [[ " ${_strats[*]} " == *" ${vals['errorStrategy']} "* ]]; then
+[[ " ${_strats[*]} " == *" ${vals['errorStrategy']} "* ]] || {
   echo >&2 "ERROR: Bad errorStrategy; must be one of: ${_strats[*]}"
   exit 2
-fi
+}
 
 while IFS=':' read -r var val; do
   vals[$var]=$val
@@ -33,10 +33,10 @@ _derived_vars=${!vals[*]}
 for var in "${_vars_used[@]}"; do
   [[ " $_derived_vars " == *" $var "* ]] || missing_vars+=("$var")
 done
-if [[ -v missing_vars ]]; then
+[[ ! -v missing_vars ]] || {
   echo >&2 "ERROR: Missing vals for: ${missing_vars[*]}"
   exit 4
-fi
+}
 
 [[ -v NXF_HOME && -n $NXF_HOME ]] || exit 5
 cat >"$NXF_HOME/config" <<-EOF
