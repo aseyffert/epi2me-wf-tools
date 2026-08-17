@@ -3,16 +3,13 @@
 # Sets up the user's environment to run EPI2ME workflows on the CHPC.
 #
 # To perform said setup, source this script; i.e., issue this command:
-#   source /absolute/path/to/bash.env
+#   source /absolute/path/to/ewtrc
 # To have it performed at login, add said command to your $HOME/.bashrc file
 #   (at your own risk; typically to the end of it).
 #
-# The NXF_{HOME,WORK,SINGULARITY_CACHEDIR} environments variables are the only
-#   environment variables that will be respected if they already exist when this
-#   script is sourced; all others (that this script exports) will be clobbered;
-#   i.e., these are the only variables (that this script exports) that the user
-#   has direct control over. (To specify your own values for these, export them
-#   before sourcing this script.)
+# Only the values of the EWT_HOME and NXF_{HOME,WORK,SINGULARITY_CACHEDIR}
+#   environment variables are respected if already set, though said values must
+#   still each point to a location on an appropriate filesystem.
 
 _ewtrc_cleanup() {
   unset -v _ewtrc_verbose _all_safe var
