@@ -35,12 +35,9 @@ _ewtrc_derive_dirname() {
   echo "${full_path%/*}"
 }
 
-[[ -v EWT_HOME ]] || {
-  ((_ewtrc_verbose)) && {
-    echo >&2 -n "WARNING: EWT_HOME not set; attempting to derive as fallback..."
-  }
-  EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || return 3
-  ((_ewtrc_verbose)) && echo "done."
+[[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
+  ((_ewtrc_verbose)) && echo >&2 "ERROR: Unable to resolve EWT_HOME."
+  return 3
 }
 
 export USER_LUSTRE=/mnt/lustre/users/$USER
