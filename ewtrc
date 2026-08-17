@@ -20,8 +20,7 @@ _ewtrc_cleanup() {
 }
 trap _ewtrc_cleanup RETURN
 
-_verbose=1
-[[ -v PBS_ENVIRONMENT ]] && _verbose=0
+[[ -v PBS_ENVIRONMENT || ! $- =~ "i" ]] && _verbose=0 || _verbose=1
 
 [[ ${BASH_SOURCE[0]} != "$0" ]] || {
   ((_verbose)) && {
@@ -35,7 +34,7 @@ _verbose=1
     echo -n "WARNING: EWT_HOME not set; attempting to derive as fallback..." >&2
   }
   source src/derive_dirname.bash
-  EWT_HOME=$(derive_dirname "${BASH_SOURCE[0]}") || return 3
+  EWT_HOME=$(derive_dirname -q "${BASH_SOURCE[0]}") || return 3
   ((_verbose)) && {
     echo "done."
   }
