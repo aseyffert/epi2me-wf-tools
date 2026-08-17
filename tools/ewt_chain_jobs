@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+#
+# Submits the specified job scripts (via qsub) as a chain; i.e., such that each
+#   job waits for the one before it to finish before entering the queue.
+#
+# Example call: ewt_chain_jobs [-q QUEUE] JOB_SCRIPT ...
+# TEMP: bash -c "myarr=(<(echo 'hi') <(echo 'there')); echo \"\${myarr[@]}\""
+
+echo 'Not Implemented'; exit 0
+
+(( $# > 1 )) || exit 1
+
+jobID=$(qsub $1)
+shift
+for job_script in $#; do
+  qsub $job_script -W depend=afterok:$jobID
+done
