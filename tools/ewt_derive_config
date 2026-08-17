@@ -17,7 +17,7 @@ case $1 in
 '') : ;;
 '^[0-9]+$') vals['maxRetries']=$1 ;;
 '^[a-z]+$') vals['errorStrategy']=$1 ;;
-*) echo >&2 "ERROR: Could not parse \$1; got: $2" ;;
+*) echo >&2 "ERROR: Could not parse \$1; got: $1" ;;
 esac
 if ! [[ " ${_strats[*]} " == *" ${vals['errorStrategy']} "* ]]; then
   echo >&2 "ERROR: Bad errorStrategy; must be one of: ${_strats[*]}"
