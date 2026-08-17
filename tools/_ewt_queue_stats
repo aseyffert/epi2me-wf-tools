@@ -64,7 +64,7 @@ qstat -Qf "$qname" | tee "${pipes[@]}" >/dev/null
 for var in "${!pids[@]}"; do
   wait "${pids[$var]}" || missing_vars+=("$var")
 done
-if [[ -v missing_vars ]]; then
+[[ ! -v missing_vars ]] || {
   echo >&2 "ERROR: No value found for: ${missing_vars[*]}."
   exit 3
-fi
+}
