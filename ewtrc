@@ -25,9 +25,7 @@ trap _ewtrc_cleanup RETURN
 export _ewtrc_verbose
 
 [[ ${BASH_SOURCE[0]} != "$0" ]] || {
-  ((_ewtrc_verbose)) && {
-    echo >&2 "ERROR: ${BASH_SOURCE[0]} (likely) not sourced, but executed."
-  }
+  ((_ewtrc_verbose)) && echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
   exit 1
 }
 
