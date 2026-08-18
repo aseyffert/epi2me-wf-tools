@@ -11,20 +11,6 @@
 #   environment variables are respected if already set, though said values must
 #   still each point to a location on an appropriate filesystem.
 
-_ewtrc_cleanup() {
-  unset -v _all_safe var _on_user_lustre_{or_home,only}
-  unset -f _ewtrc_cleanup
-}
-trap _ewtrc_cleanup RETURN
-
-[[ -v PBS_ENVIRONMENT || ! $- =~ "i" ]] && _ewtrc_verbose=0 || _ewtrc_verbose=1
-export _ewtrc_verbose
-
-[[ ${BASH_SOURCE[0]} != "$0" ]] || {
-  ((_ewtrc_verbose)) && echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
-  exit 1
-}
-
 _ewtrc_derive_dirname() {
   local full_path
   full_path="$(realpath "$1" 2>/dev/null)" || {
@@ -32,6 +18,23 @@ _ewtrc_derive_dirname() {
     return 3
   }
   echo "${full_path%/*}"
+}
+
+_ewtrc_cleanup() {
+  unset -v _all_safe var _on_user_lustre_{or_home,only}
+  unset -f _ewtrc_cleanup
+}
+trap _ewtrc_cleanup RETURN
+
+_on_user_lustre_or_home=(EWT_HOME NXF_HOME)
+_on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
+
+[[ -v PBS_ENVIRONMENT || ! $- =~ "i" ]] && _ewtrc_verbose=0 || _ewtrc_verbose=1
+export _ewtrc_verbose
+
+[[ ${BASH_SOURCE[0]} != "$0" ]] || {
+  ((_ewtrc_verbose)) && echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
+  exit 1
 }
 
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
@@ -49,9 +52,6 @@ export USER_LUSTRE=/mnt/lustre/users/$USER
 : "${NXF_HOME:=$HOME/.nextflow}"
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
-
-_on_user_lustre_or_home=(EWT_HOME NXF_HOME)
-_on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 
 _all_safe=1
 for var in "${_on_user_lustre_or_home[@]}"; do
