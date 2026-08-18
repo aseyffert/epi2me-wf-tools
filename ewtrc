@@ -20,11 +20,14 @@ _ewtrc_derive_dirname() {
   echo "${full_path%/*}"
 }
 
+# NOTE:   Since source commands trigger the RETURN trap, all such commands must
+#           precede this function being set as RETURN trap. Hence, any returns
+#           that precede such commands must be accompanied by a call to this
+#           function (along with whatever additional manual cleanup is needed).
 _ewtrc_cleanup() {
   unset -v _all_safe var _on_user_lustre_{or_home,only}
   unset -f _ewtrc_cleanup
 }
-trap _ewtrc_cleanup RETURN
 
 _on_user_lustre_or_home=(EWT_HOME NXF_HOME)
 _on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
@@ -39,8 +42,15 @@ export _ewtrc_verbose
 
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
   ((_ewtrc_verbose)) && echo >&2 "ERROR: Unable to resolve EWT_HOME."
+  unset EWT_HOME
+  _ewtrc_cleanup
   return 3
 }
+
+source "$EWT_HOME"/src/tless.bash
+source "$EWT_HOME"/src/research_programme_handling.bash
+
+trap _ewtrc_cleanup RETURN
 
 export USER_LUSTRE=/mnt/lustre/users/$USER
 
@@ -85,7 +95,6 @@ done
 # NOTE:   Users who belong to multiple groups must pass the desired
 #           RESEARCH_PROGRAMME string for a head job-style run via the -v option
 #           to qsub (or the corresponding #PBS line in the job script).
-source "$EWT_HOME"/src/research_programme_handling.bash
 [[ -v RESEARCH_PROGRAMME ]] || set_research_programme -p -q >/dev/null 2>&1
 
 # FIXME:  This should not be set to false for interactive runs; i.e., when the
@@ -108,8 +117,6 @@ export NXF_DISABLE_CHECK_LATEST='true'
 
 # Run `less` with ANSI colors support (used in nextflow log files) by default.
 # alias less="less -R"
-
-source "$EWT_HOME"/src/tless.bash
 
 # Prevents $HOME from leaking into nextflow's singularity auto mounts via $PWD.
 alias cd="cd -P"
