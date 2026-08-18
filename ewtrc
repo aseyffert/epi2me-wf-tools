@@ -12,9 +12,8 @@
 #   still each point to a location on an appropriate filesystem.
 
 _ewtrc_cleanup() {
-  unset -v _ewtrc_verbose _all_safe var
-  unset -v _on_home_or_user_lustre _on_user_lustre_only
-  unset -f _ewtrc_derive_dirname set_research_programme
+  unset -v _all_safe var _on_user_lustre_{or_home,only}
+  unset -f _ewtrc_cleanup
 }
 trap _ewtrc_cleanup RETURN
 
@@ -51,11 +50,11 @@ export USER_LUSTRE=/mnt/lustre/users/$USER
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
-_on_home_or_user_lustre=(EWT_HOME NXF_HOME)
+_on_user_lustre_or_home=(EWT_HOME NXF_HOME)
 _on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 
 _all_safe=1
-for var in "${_on_home_or_user_lustre[@]}"; do
+for var in "${_on_user_lustre_or_home[@]}"; do
   [[ ${!var} == $HOME/* || ${!var} == $USER_LUSTRE/* ]] || {
     ((_ewtrc_verbose)) && {
       echo >&2 "ERROR: $var must be on either $HOME or $USER_LUSTRE."
@@ -75,7 +74,7 @@ for var in "${_on_user_lustre_only[@]}"; do
 done
 ((_all_safe)) || return 4
 
-for var in "${_on_home_or_user_lustre[@]}" "${_on_user_lustre_only[@]}"; do
+for var in "${_on_user_lustre_or_home[@]}" "${_on_user_lustre_only[@]}"; do
   export "${var?}"
 done
 
