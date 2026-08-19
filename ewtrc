@@ -122,3 +122,6 @@ export NXF_DISABLE_CHECK_LATEST='true'
 alias cd="cd -P"
 
 export SINGULARITY_DISABLE_CACHE='true'
+
+trap - RETURN
+_ewtrc_cleanup
