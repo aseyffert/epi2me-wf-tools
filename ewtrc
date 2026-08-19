@@ -2,9 +2,10 @@
 #
 # Sets up the user's environment to run EPI2ME workflows on the CHPC.
 #
-# To perform said setup, source this script; i.e., issue this command:
+# To perform said setup, source this script; i.e., issue these commands:
 #   source /absolute/path/to/ewtrc
-# To have it performed at login, add said command to your $HOME/.bashrc file
+#   trap - RETURN
+# To have it performed at login, add said commands to your $HOME/.bashrc file
 #   (at your own risk; typically to the end of it).
 #
 # Only the values of the EWT_HOME and NXF_{HOME,WORK,SINGULARITY_CACHEDIR}
@@ -20,10 +21,12 @@ _ewtrc_derive_dirname() {
   echo "${full_path%/*}"
 }
 
-# NOTE:   Since source commands trigger the RETURN trap, all such commands must
-#           precede this function being set as RETURN trap. Hence, any returns
-#           that precede such commands must be accompanied by a call to this
-#           function (along with whatever additional manual cleanup is needed).
+# NOTE:   Since source commands trigger the RETURN trap, and such trigger events
+#           are hard to distinguish from this traps targets, all such commands
+#           must precede this function being set as RETURN trap.
+#         Hence, any returns that precede such commands must be accompanied by a
+#           call to this function (along with whatever additional manual cleanup
+#           is needed).
 _ewtrc_cleanup() {
   unset -v _all_safe var _on_user_lustre_{or_home,only}
   unset -f _ewtrc_cleanup
@@ -122,6 +125,3 @@ export NXF_DISABLE_CHECK_LATEST='true'
 alias cd="cd -P"
 
 export SINGULARITY_DISABLE_CACHE='true'
-
-trap - RETURN
-_ewtrc_cleanup
