@@ -27,13 +27,13 @@ _ewtrc_derive_dirname() {
 #         Hence, any returns that precede such commands must be accompanied by a
 #           call to this function (along with whatever additional manual cleanup
 #           is needed).
-_ewtrc_cleanup() {
-  unset -v _all_safe var _on_user_lustre_{or_home,only}
-  unset -f _ewtrc_cleanup
+ewtrc_cleanup() {
+  unset -v all_safe var on_user_lustre_{or_home,only}
+  unset -f ewtrc_cleanup
 }
 
-_on_user_lustre_or_home=(EWT_HOME NXF_HOME)
-_on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
+on_user_lustre_or_home=(EWT_HOME NXF_HOME)
+on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 
 [[ -v PBS_ENVIRONMENT || ! $- =~ "i" ]] && _ewtrc_verbose=0 || _ewtrc_verbose=1
 export _ewtrc_verbose
@@ -46,14 +46,14 @@ export _ewtrc_verbose
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
   ((_ewtrc_verbose)) && echo >&2 "ERROR: Unable to resolve EWT_HOME."
   unset EWT_HOME
-  _ewtrc_cleanup
+  ewtrc_cleanup
   return 3
 }
 
 source "$EWT_HOME"/src/tless.bash
 source "$EWT_HOME"/src/research_programme_handling.bash
 
-trap _ewtrc_cleanup RETURN
+trap ewtrc_cleanup RETURN
 
 export USER_LUSTRE=/mnt/lustre/users/$USER
 
@@ -66,28 +66,28 @@ export USER_LUSTRE=/mnt/lustre/users/$USER
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
-_all_safe=1
-for var in "${_on_user_lustre_or_home[@]}"; do
+all_safe=1
+for var in "${on_user_lustre_or_home[@]}"; do
   [[ ${!var} == $HOME/* || ${!var} == $USER_LUSTRE/* ]] || {
     ((_ewtrc_verbose)) && {
       echo >&2 "ERROR: $var must be on either $HOME or $USER_LUSTRE."
       echo >&2 "(Current target: ${!var} )"
     }
-    _all_safe=0
+    all_safe=0
   }
 done
-for var in "${_on_user_lustre_only[@]}"; do
+for var in "${on_user_lustre_only[@]}"; do
   [[ ${!var} == $USER_LUSTRE/* ]] || {
     ((_ewtrc_verbose)) && {
       echo >&2 "ERROR: $var must be on $USER_LUSTRE."
       echo >&2 "(Current target: ${!var} )"
     }
-    _all_safe=0
+    all_safe=0
   }
 done
-((_all_safe)) || return 4
+((all_safe)) || return 4
 
-for var in "${_on_user_lustre_or_home[@]}" "${_on_user_lustre_only[@]}"; do
+for var in "${on_user_lustre_or_home[@]}" "${on_user_lustre_only[@]}"; do
   export "${var?}"
 done
 
