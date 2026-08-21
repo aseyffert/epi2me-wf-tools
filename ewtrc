@@ -28,7 +28,7 @@ ewtrc_cleanup() {
 on_user_lustre_or_home=(EWT_HOME NXF_HOME)
 on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 
-[[ -v PBS_ENVIRONMENT || ! $- =~ "i" ]] && _ewtrc_verbose=0 || _ewtrc_verbose=1
+[[ -v PBS_ENVIRONMENT || ! $- =~ 'i' ]] && _ewtrc_verbose=0 || _ewtrc_verbose=1
 export _ewtrc_verbose
 
 [[ ${BASH_SOURCE[0]} != "$0" ]] || {
@@ -37,7 +37,7 @@ export _ewtrc_verbose
 }
 
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
-  ((_ewtrc_verbose)) && echo >&2 "ERROR: Unable to resolve EWT_HOME."
+  ((_ewtrc_verbose)) && echo >&2 'ERROR: Unable to resolve EWT_HOME.'
   unset EWT_HOME
   ewtrc_cleanup
   return 3
@@ -118,6 +118,6 @@ export NXF_DISABLE_CHECK_LATEST='true'
 # alias less="less -R"
 
 # Prevents $HOME from leaking into nextflow's singularity auto mounts via $PWD.
-alias cd="cd -P"
+alias cd='cd -P'
 
 export SINGULARITY_DISABLE_CACHE='true'
