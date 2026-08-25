@@ -36,19 +36,22 @@ export _ewtrc_verbose
   exit 1
 }
 
+# NOTE:   The trap unset part must happen in the global scope; it cannot happen
+#           inside a function (i.e., it cannot happen inside ewtrc_cleanup).
+# NOTE:   This trap must be unset (via `trap - RETURN`) before any source calls
+#           beyond this point, and reset by a copy of this line once said calls
+#           are out of the way.
+trap 'ewtrc_cleanup; trap - RETURN' RETURN
+
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
   ((_ewtrc_verbose)) && echo >&2 'ERROR: Unable to resolve EWT_HOME.'
   unset EWT_HOME
-  ewtrc_cleanup
   return 3
 }
 
+trap - RETURN
 source "$EWT_HOME"/src/tless.bash
 source "$EWT_HOME"/src/research_programme_handling.bash
-
-# Now that all source commands are done, we can set a RETURN trap.
-# NOTE:   The trap reset must happen in the global scope; it cannot happen
-#           inside a function.
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
 export USER_LUSTRE=/mnt/lustre/users/$USER
