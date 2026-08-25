@@ -20,6 +20,45 @@ _ewtrc_derive_dirname() {
   echo "${full_path%/*}"
 }
 
+_ewtrc_constrain_paths() {
+  local {check,pathy}_var var_pass all_pass=1
+  local -a check_vars constraint_vars
+  read -ra check_vars <<<"$1"
+  shift
+  read -ra constraint_vars <<<"$@"
+  ((${#check_vars[@]} * ${#constraint_vars[@]})) || return
+  for pathy_var in "${constraint_vars[@]}"; do
+    [[ ${!pathy_var} == /* ]] || {
+      ((_ewtrc_verbose)) && echo >&2 "ERROR: $pathy_var not an absolute path."
+      return 3
+    }
+    [[ -d ${!pathy_var} ]] || {
+      ((_ewtrc_verbose)) && echo >&2 "ERROR: $pathy_var not a directory."
+      return 4
+    }
+  done
+  for check_var in "${check_vars[@]}"; do
+    [[ ${!check_var} == /* ]] || {
+      ((_ewtrc_verbose)) && echo >&2 "ERROR: $check_var not an absolute path."
+      all_pass=0
+      continue
+    }
+    var_pass=0
+    for pathy_var in "${constraint_vars[@]}"; do
+      [[ ${!check_var} == ${!pathy_var}/* ]] && var_pass=1
+    done
+    ((var_pass)) || {
+      echo >&2 "ERROR: $check_var must be on one of:"
+      for pathy_var in "${constraint_vars[@]}"; do
+        echo >&2 "${!pathy_var}"
+      done
+      echo >&2 "(Current target: ${!check_var} )"
+      all_pass=0
+    }
+  done
+  ((all_pass)) || return 5
+}
+
 ewtrc_cleanup() {
   unset -v all_safe var on_user_lustre_{or_home,only}
   unset -f ewtrc_cleanup
@@ -65,26 +104,11 @@ export USER_LUSTRE=/mnt/lustre/users/$USER
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
-all_safe=1
-for var in "${on_user_lustre_or_home[@]}"; do
-  [[ ${!var} == $HOME/* || ${!var} == $USER_LUSTRE/* ]] || {
-    ((_ewtrc_verbose)) && {
-      echo >&2 "ERROR: $var must be on either $HOME or $USER_LUSTRE."
-      echo >&2 "(Current target: ${!var} )"
-    }
-    all_safe=0
-  }
-done
-for var in "${on_user_lustre_only[@]}"; do
-  [[ ${!var} == $USER_LUSTRE/* ]] || {
-    ((_ewtrc_verbose)) && {
-      echo >&2 "ERROR: $var must be on $USER_LUSTRE."
-      echo >&2 "(Current target: ${!var} )"
-    }
-    all_safe=0
-  }
-done
-((all_safe)) || return 4
+_ewtrc_constrain_paths "${on_user_lustre_or_home[*]}" USER_LUSTRE HOME || {
+  all_safe=0
+}
+_ewtrc_constrain_paths "${on_user_lustre_only[*]}" USER_LUSTRE || all_safe=0
+((${all_safe:-1})) || return 4
 
 for var in "${on_user_lustre_or_home[@]}" "${on_user_lustre_only[@]}"; do
   export "${var?}"
