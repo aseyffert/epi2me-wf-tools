@@ -43,13 +43,12 @@ _ewtrc_constrain_paths() {
     for constraint_var in "${constraint_vars[@]}"; do
       [[ ${!check_var} == ${!constraint_var}/* ]] || var_fail=1
     done
-    ((var_fail)) && {
+    ((var_fail)) && fail=1 && ((_EWTRC_VERBOSE)) && {
       echo >&2 "ERROR: $check_var must be on one of:"
       for constraint_var in "${constraint_vars[@]}"; do
         echo >&2 "${!constraint_var}"
       done
       echo >&2 "(Current target: ${!check_var} )"
-      fail=1
     }
     unset var_fail
   done
