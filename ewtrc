@@ -11,10 +11,12 @@
 #   environment variables are respected if already set, though said values must
 #   still each point to a location on an appropriate filesystem.
 
+_ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo "$@"; }
+
 _ewtrc_derive_dirname() {
   local full_path
   full_path="$(realpath "$1" 2>/dev/null)" || {
-    ((_EWTRC_VERBOSE)) && echo >&2 "ERROR: Unable to resolve realpath for $1."
+    _ewtrc_echo >&2 "ERROR: Unable to resolve realpath for $1."
     return 3
   }
   echo "${full_path%/*}"
@@ -29,13 +31,13 @@ _ewtrc_constrain_paths() {
   ((${#check_vars[@]} * ${#constraint_vars[@]})) || return
   for pathy_var in "${check_vars[@]}" "${constraint_vars[@]}"; do
     [[ ${!pathy_var} == /* ]] || {
-      ((_EWTRC_VERBOSE)) && echo >&2 "ERROR: $pathy_var not an absolute path."
+      _ewtrc_echo >&2 "ERROR: $pathy_var not an absolute path."
       return 3
     }
   done
   for constraint_var in "${constraint_vars[@]}"; do
     [[ -d ${!constraint_var} ]] || {
-      ((_EWTRC_VERBOSE)) && echo >&2 "ERROR: $constraint_var not a directory."
+      _ewtrc_echo >&2 "ERROR: $constraint_var not a directory."
       return 4
     }
   done
@@ -43,12 +45,13 @@ _ewtrc_constrain_paths() {
     for constraint_var in "${constraint_vars[@]}"; do
       [[ ${!check_var} == ${!constraint_var}/* ]] || var_fail=1
     done
-    ((var_fail)) && fail=1 && ((_EWTRC_VERBOSE)) && {
-      echo >&2 "ERROR: $check_var must be on one of:"
+    ((var_fail)) && {
+      fail=1
+      _ewtrc_echo >&2 "ERROR: $check_var must be on one of:"
       for constraint_var in "${constraint_vars[@]}"; do
-        echo >&2 "${!constraint_var}"
+        _ewtrc_echo >&2 "${!constraint_var}"
       done
-      echo >&2 "(Current target: ${!check_var} )"
+      _ewtrc_echo >&2 "(Current target: ${!check_var} )"
     }
     unset var_fail
   done
@@ -67,7 +70,7 @@ user_lustre_or_home=(EWT_HOME NXF_HOME)
 export _EWTRC_VERBOSE
 
 [[ ${BASH_SOURCE[0]} != "$0" ]] || {
-  ((_EWTRC_VERBOSE)) && echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
+  _ewtrc_echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
   exit 1
 }
 
@@ -79,7 +82,7 @@ export _EWTRC_VERBOSE
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
-  ((_EWTRC_VERBOSE)) && echo >&2 'ERROR: Unable to resolve EWT_HOME.'
+  _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
   unset EWT_HOME
   return 3
 }
