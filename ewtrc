@@ -21,51 +21,48 @@ _ewtrc_derive_dirname() {
 }
 
 _ewtrc_constrain_paths() {
-  local {check,pathy}_var var_pass all_pass=1
+  local {pathy,check,constraint}_var var_fail fail
   local -a check_vars constraint_vars
   read -ra check_vars <<<"$1"
   shift
   read -ra constraint_vars <<<"$@"
   ((${#check_vars[@]} * ${#constraint_vars[@]})) || return
-  for pathy_var in "${constraint_vars[@]}"; do
+  for pathy_var in "${check_vars[@]}" "${constraint_vars[@]}"; do
     [[ ${!pathy_var} == /* ]] || {
       ((_ewtrc_verbose)) && echo >&2 "ERROR: $pathy_var not an absolute path."
       return 3
     }
-    [[ -d ${!pathy_var} ]] || {
-      ((_ewtrc_verbose)) && echo >&2 "ERROR: $pathy_var not a directory."
+  done
+  for constraint_var in "${constraint_vars[@]}"; do
+    [[ -d ${!constraint_var} ]] || {
+      ((_ewtrc_verbose)) && echo >&2 "ERROR: $constraint_var not a directory."
       return 4
     }
   done
   for check_var in "${check_vars[@]}"; do
-    [[ ${!check_var} == /* ]] || {
-      ((_ewtrc_verbose)) && echo >&2 "ERROR: $check_var not an absolute path."
-      all_pass=0
-      continue
-    }
-    var_pass=0
-    for pathy_var in "${constraint_vars[@]}"; do
-      [[ ${!check_var} == ${!pathy_var}/* ]] && var_pass=1
+    for constraint_var in "${constraint_vars[@]}"; do
+      [[ ${!check_var} == ${!constraint_var}/* ]] || var_fail=1
     done
-    ((var_pass)) || {
+    ((var_fail)) && {
       echo >&2 "ERROR: $check_var must be on one of:"
-      for pathy_var in "${constraint_vars[@]}"; do
-        echo >&2 "${!pathy_var}"
+      for constraint_var in "${constraint_vars[@]}"; do
+        echo >&2 "${!constraint_var}"
       done
       echo >&2 "(Current target: ${!check_var} )"
-      all_pass=0
+      fail=1
     }
+    unset var_fail
   done
-  ((all_pass)) || return 5
+  ((fail)) && return 5
 }
 
 ewtrc_cleanup() {
-  unset -v all_safe var on_user_lustre_{or_home,only}
+  unset -v fail user_lustre_{only,or_home}
   unset -f ewtrc_cleanup
 }
 
-on_user_lustre_or_home=(EWT_HOME NXF_HOME)
-on_user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
+user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
+user_lustre_or_home=(EWT_HOME NXF_HOME)
 
 [[ -v PBS_ENVIRONMENT || ! $- =~ 'i' ]] && _ewtrc_verbose=0 || _ewtrc_verbose=1
 export _ewtrc_verbose
@@ -104,11 +101,9 @@ export USER_LUSTRE=/mnt/lustre/users/$USER
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
-_ewtrc_constrain_paths "${on_user_lustre_or_home[*]}" USER_LUSTRE HOME || {
-  all_safe=0
-}
-_ewtrc_constrain_paths "${on_user_lustre_only[*]}" USER_LUSTRE || all_safe=0
-((${all_safe:-1})) || return 4
+_ewtrc_constrain_paths "${user_lustre_only[*]}" USER_LUSTRE || fail=1
+_ewtrc_constrain_paths "${user_lustre_or_home[*]}" USER_LUSTRE HOME || fail=1
+((fail)) && return 4
 
 export "${user_lustre_only[@]}" "${user_lustre_or_home[@]}"
 
