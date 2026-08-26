@@ -110,9 +110,7 @@ _ewtrc_constrain_paths "${on_user_lustre_or_home[*]}" USER_LUSTRE HOME || {
 _ewtrc_constrain_paths "${on_user_lustre_only[*]}" USER_LUSTRE || all_safe=0
 ((${all_safe:-1})) || return 4
 
-for var in "${on_user_lustre_or_home[@]}" "${on_user_lustre_only[@]}"; do
-  export "${var?}"
-done
+export "${user_lustre_only[@]}" "${user_lustre_or_home[@]}"
 
 [[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
 
