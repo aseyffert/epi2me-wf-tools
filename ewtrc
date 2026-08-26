@@ -14,7 +14,7 @@
 _ewtrc_derive_dirname() {
   local full_path
   full_path="$(realpath "$1" 2>/dev/null)" || {
-    ((_ewtrc_verbose)) && echo >&2 "ERROR: Unable to resolve realpath for $1."
+    ((_EWTRC_VERBOSE)) && echo >&2 "ERROR: Unable to resolve realpath for $1."
     return 3
   }
   echo "${full_path%/*}"
@@ -29,13 +29,13 @@ _ewtrc_constrain_paths() {
   ((${#check_vars[@]} * ${#constraint_vars[@]})) || return
   for pathy_var in "${check_vars[@]}" "${constraint_vars[@]}"; do
     [[ ${!pathy_var} == /* ]] || {
-      ((_ewtrc_verbose)) && echo >&2 "ERROR: $pathy_var not an absolute path."
+      ((_EWTRC_VERBOSE)) && echo >&2 "ERROR: $pathy_var not an absolute path."
       return 3
     }
   done
   for constraint_var in "${constraint_vars[@]}"; do
     [[ -d ${!constraint_var} ]] || {
-      ((_ewtrc_verbose)) && echo >&2 "ERROR: $constraint_var not a directory."
+      ((_EWTRC_VERBOSE)) && echo >&2 "ERROR: $constraint_var not a directory."
       return 4
     }
   done
@@ -64,11 +64,11 @@ ewtrc_cleanup() {
 user_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 user_lustre_or_home=(EWT_HOME NXF_HOME)
 
-[[ -v PBS_ENVIRONMENT || ! $- =~ 'i' ]] && _ewtrc_verbose=0 || _ewtrc_verbose=1
-export _ewtrc_verbose
+[[ -v PBS_ENVIRONMENT || ! $- =~ 'i' ]] && _EWTRC_VERBOSE=0 || _EWTRC_VERBOSE=1
+export _EWTRC_VERBOSE
 
 [[ ${BASH_SOURCE[0]} != "$0" ]] || {
-  ((_ewtrc_verbose)) && echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
+  ((_EWTRC_VERBOSE)) && echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
   exit 1
 }
 
@@ -80,7 +80,7 @@ export _ewtrc_verbose
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
-  ((_ewtrc_verbose)) && echo >&2 'ERROR: Unable to resolve EWT_HOME.'
+  ((_EWTRC_VERBOSE)) && echo >&2 'ERROR: Unable to resolve EWT_HOME.'
   unset EWT_HOME
   return 3
 }
