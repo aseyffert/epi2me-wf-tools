@@ -11,7 +11,7 @@
 #   environment variables are respected if already set, though said values must
 #   still each point to a location on an appropriate filesystem.
 
-_ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo "$@"; }
+_ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
 
 _ewtrc_derive_dirname() {
   local full_path
@@ -23,8 +23,8 @@ _ewtrc_derive_dirname() {
 }
 
 _ewtrc_constrain_paths() {
-  local {pathy,check,constraint}_var var_fail fail
-  local -a check_vars constraint_vars
+  local {pathy,check,constraint,fail}_var var_pass fail
+  local -a {check,constraint,fail}_vars
   read -ra check_vars <<<"$1"
   shift
   read -ra constraint_vars <<<"$@"
@@ -43,19 +43,23 @@ _ewtrc_constrain_paths() {
   done
   for check_var in "${check_vars[@]}"; do
     for constraint_var in "${constraint_vars[@]}"; do
-      [[ ${!check_var} == ${!constraint_var}/* ]] || var_fail=1
+      [[ ${!check_var} == ${!constraint_var}/* ]] && var_pass=1 && break
     done
-    ((var_fail)) && {
-      fail=1
-      _ewtrc_echo >&2 "ERROR: $check_var must be on one of:"
-      for constraint_var in "${constraint_vars[@]}"; do
-        _ewtrc_echo >&2 "${!constraint_var}"
-      done
-      _ewtrc_echo >&2 "(Current target: ${!check_var} )"
-    }
-    unset var_fail
+    ((var_pass)) || fail_vars+=("$check_var")
+    unset var_pass
   done
-  ((fail)) && return 5
+  [[ -v fail_vars ]] && {
+    _ewtrc_echo >&2 "ERROR: (Some) pathy variables not on allowed paths:"
+    _ewtrc_echo >&2 "Variables (and current targets):"
+    for fail_var in "${fail_vars[@]}"; do
+      _ewtrc_echo >&2 "\t$fail_var = ${!fail_var}"
+    done
+    _ewtrc_echo >&2 "Allowed paths:"
+    for constraint_var in "${constraint_vars[@]}"; do
+      _ewtrc_echo >&2 "\t${!constraint_var}/*"
+    done
+    return 5
+  }
 }
 
 ewtrc_cleanup() {
