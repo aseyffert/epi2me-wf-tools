@@ -48,7 +48,7 @@ _ewtrc_constrain_paths() {
     ((var_pass)) || fail_vars+=("$check_var")
     unset var_pass
   done
-  [[ -v fail_vars ]] && {
+  ((${#fail_vars[@]} == 0)) || {
     _ewtrc_echo >&2 "ERROR: (Some) pathy variables not on allowed paths:"
     _ewtrc_echo >&2 "Variables (and current targets):"
     for fail_var in "${fail_vars[@]}"; do
