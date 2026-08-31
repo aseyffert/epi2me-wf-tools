@@ -63,7 +63,7 @@ _ewtrc_constrain_paths() {
 }
 
 ewtrc_cleanup() {
-  unset -v ewtrc_fail ewtrc_lustre_{only,or_home}
+  unset -v ewtrc_lustre_{only,or_home}
   unset -f ewtrc_cleanup
 }
 
@@ -107,9 +107,9 @@ export USER_LUSTRE=/mnt/lustre/users/$USER
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
-_ewtrc_constrain_paths "${ewtrc_lustre_only[*]}" USER_LUSTRE || ewtrc_fail=1
-_ewtrc_constrain_paths "${ewtrc_lustre_or_home[*]}" USER_LUSTRE HOME || ewtrc_fail=1
-((ewtrc_fail)) && return 4
+_ewtrc_constrain_paths "${ewtrc_lustre_only[*]}" USER_LUSTRE &&
+  _ewtrc_constrain_paths "${ewtrc_lustre_or_home[*]}" USER_LUSTRE HOME ||
+  return 4
 
 export "${ewtrc_lustre_only[@]}" "${ewtrc_lustre_or_home[@]}"
 
