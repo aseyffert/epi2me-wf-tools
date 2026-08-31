@@ -23,7 +23,7 @@ _ewtrc_derive_dirname() {
 }
 
 _ewtrc_constrain_paths() {
-  local {pathy,check,constraint,fail}_var var_pass fail
+  local {pathy,check,constraint,fail}_var var_pass
   local -a {check,constraint,fail}_vars
   read -ra check_vars <<<"$1"
   shift
