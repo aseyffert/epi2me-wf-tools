@@ -133,7 +133,7 @@ module load chpc/BIOMODULES
 module load nextflow chpc/singularity 2>/dev/null
 
 ### Compute node-only
-[[ $(hostname) =~ cnode[0-9]+ ]] && {
+[[ $(hostname) == cnode+([[:digit:]]) ]] && {
   export NXF_OFFLINE='true'
   return
 }
