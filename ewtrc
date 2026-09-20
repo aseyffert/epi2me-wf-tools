@@ -70,7 +70,10 @@ ewtrc_cleanup() {
 ewtrc_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 ewtrc_lustre_or_home=(EWT_HOME NXF_HOME)
 
-[[ -v PBS_ENVIRONMENT || ! $- =~ 'i' ]] && _EWTRC_VERBOSE=0 || _EWTRC_VERBOSE=1
+# NOTE: The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
+#         but that suppresses error reporting for interactive jobs as well.
+[[ ! $- =~ 'i' ]] && _EWTRC_VERBOSE=0
+: "${_EWTRC_VERBOSE:=1}"
 export _EWTRC_VERBOSE
 
 [[ ${BASH_SOURCE[0]} != "$0" ]] || {
