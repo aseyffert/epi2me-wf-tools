@@ -135,6 +135,9 @@ export NXF_ANSI_LOG='false'
 module load chpc/BIOMODULES
 module load nextflow chpc/singularity 2>/dev/null
 
+# NB: No operations that can fail beyond this point!
+export _EWTRC_LOADED_OK=1
+
 ### Compute node-only
 [[ $(hostname) == cnode+([[:digit:]]) ]] && {
   export NXF_OFFLINE='true'
