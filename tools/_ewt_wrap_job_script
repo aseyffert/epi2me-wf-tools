@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+((_EWTRC_LOADED_OK)) || exit 2
+
+source "$EWT_HOME/src/wrapping/tools.bash"
+source "$EWT_HOME/src/wrapping/wrappers.bash"
+
+(($# >= 1)) || exit 3
+base_script="$1"
+shift
+read -ra wrappers <<<"$@"
+
+for wrapper in "${wrappers[@]}"; do
+  which "$wrapper" >/dev/null 2>&1 || [[ -x $wrapper ]] || exit 4
+done
+
+declare -a tmps
+trap 'rm "${tmps[@]}"' EXIT
+until ((${#tmps[@]} == 2)); do
+  tmps+=("$(mktemp --tmpdir -q ewt_tmp_XXXXXX.bash)") || exit 5
+done
+
+cat "$base_script" | _ewt_regularise_job_script >"${tmps[0]}"
+for wrapper in "${wrappers[@]}"; do
+  $wrapper <"${tmps[0 - idx_offset]}" >"${tmps[1 - idx_offset]}"
+  ((idx_offset ? idx_offset-- : idx_offset++))
+done
+
+cat "${tmps[0 - idx_offset]}"
