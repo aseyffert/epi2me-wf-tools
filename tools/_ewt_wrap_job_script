@@ -10,9 +10,7 @@ base_script="$1"
 shift
 read -ra wrappers <<<"$@"
 
-for wrapper in "${wrappers[@]}"; do
-  which "$wrapper" >/dev/null 2>&1 || [[ -x $wrapper ]] || exit 4
-done
+declare -F "${wrappers[@]}" >/dev/null 2>&1 || exit 4
 
 declare -a tmps
 trap 'rm "${tmps[@]}"' EXIT
