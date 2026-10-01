@@ -16,7 +16,7 @@ patterns['max_queued']='[0-9]+'
 patterns['max_walltime']='([0-9]{2}:){2}[0-9]+'
 rstrips['max_walltime']=':*'
 
-if qstat -Q "$1" >/dev/null 2>&1; then
+if qstat -Q "$1" &>/dev/null; then
   qname="$1"
 else
   echo >&2 "ERROR: Unknown queue: $1."

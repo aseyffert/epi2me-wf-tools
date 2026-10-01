@@ -152,7 +152,7 @@ export "${ewtrc_lustre_only[@]}" "${ewtrc_lustre_or_home[@]}"
 # NOTE:   Users who belong to multiple groups must pass the desired
 #           RESEARCH_PROGRAMME string for a head job-style run via the -v option
 #           to qsub (or the corresponding #PBS line in the job script).
-[[ -v RESEARCH_PROGRAMME ]] || set_research_programme -p -q >/dev/null 2>&1
+[[ -v RESEARCH_PROGRAMME ]] || set_research_programme -p -q &>/dev/null
 
 # FIXME:  This should not be set to false for interactive runs; i.e., when the
 #           user starts an interactive PBS job and runs nextflow themselves.
