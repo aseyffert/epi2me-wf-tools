@@ -62,10 +62,38 @@ _ewtrc_constrain_paths() {
   }
 }
 
+_ewtrc_loaded_ok() {
+  # NOTE: This doesn't check that RESEARCH_PROGRAMME is set or that
+  #         set_research_programme is a known function.
+  local var
+  local -a funcs vars
+  funcs=(_ewtrc_{echo,derive_dirname,constrain_paths} tless)
+  vars=(
+    _EWTRC_VERBOSE EWT_HOME USER_LUSTRE
+    NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG}
+  )
+  [[ $(hostname) == cnode+([[:digit:]]) ]] &&
+    vars+=(NXF_OFFLINE) ||
+    vars+=(NXF_DISABLE_CHECK_LATEST SINGULARITY_DISABLE_CACHE)
+
+  declare -F "${funcs[@]}" &>/dev/null || return
+  for var in "${vars[@]}"; do
+    [[ -v $var ]] || return
+  done
+  [[ $PATH =~ $EWT_HOME/tools ]] || return
+  # TODO: Add check for the nextflow and singularity modules
+  # TODO: Implement a sensible check that -P is in effect for cd on non-cnodes.
+  # option:
+  #   IFS='=' read -rt 1 junk val < <(alias cd) &&
+  #     [[ $val == "'cd -P'" ]] || return
+}
+
 ewtrc_cleanup() {
   unset -v ewtrc_lustre_{only,or_home}
   unset -f ewtrc_cleanup
 }
+
+export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
 
 ewtrc_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
 ewtrc_lustre_or_home=(EWT_HOME NXF_HOME)
@@ -134,9 +162,6 @@ export NXF_ANSI_LOG='false'
 #   directory (which houses the nextflow module, among others) to MODULEPATH.
 module load chpc/BIOMODULES
 module load nextflow chpc/singularity 2>/dev/null
-
-# NB: No operations that can fail beyond this point!
-export _EWTRC_LOADED_OK=1
 
 ### Compute node-only
 [[ $(hostname) == cnode+([[:digit:]]) ]] && {

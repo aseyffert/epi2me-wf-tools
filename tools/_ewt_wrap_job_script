@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-((_EWTRC_LOADED_OK)) || exit 2
+declare -F _ewtrc_loaded_ok &>/dev/null && _ewtrc_loaded_ok || exit 2
 
 source "$EWT_HOME/src/wrapping/tools.bash"
 source "$EWT_HOME/src/wrapping/wrappers.bash"
