@@ -24,4 +24,4 @@ for wrapper in "${wrappers[@]}"; do
   ((idx_offset ? idx_offset-- : idx_offset++))
 done
 
-cat "${tmps[0 - idx_offset]}"
+cat "${tmps[0 - idx_offset]}" | _ewt_consolidate_variable_lists
