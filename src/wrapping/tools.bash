@@ -1,5 +1,6 @@
 _ewt_regularise_job_script() {
   # NOTE: "regularised" means "*(directive lines) ?(empty line) +(code lines)"
+  # NOTE: Trailing whitespace is stripped since we use echo.
   # NOTE: This implicitly ignores user-specified shebangs.
   local cnt=0 code_hit
   read -t 1 || return 3
@@ -29,22 +30,23 @@ _ewt_cat_directives() {
   done
 }
 
-_ewt_consolidate_var_directives() {
+_ewt_consolidate_variable_lists() {
   # NB: Assumes that it's reading a regularised script.
-  # FIXME: Does not check duplicates or distinquish assignments vs. names only.
-  local -a var_directives
+  # NOTE:   This function doesn't check for duplicated variable list entries,
+  #           primarily because doing so is quite difficult since variables in
+  #           the list can themselves contain commas.
+  local export_env vars_line
   read -t 0 || return 3
-  while read -r || return 4 && [[ -n $REPLY ]]; do
-    [[ $REPLY == '#PBS -v '+ ]] && var_directives+=("$REPLY") || echo "$REPLY"
+  until read -r || return 4 && [[ -z $REPLY ]]; do
+    [[ $REPLY == '#PBS -V' ]] && export_env=1 && continue
+    [[ $REPLY == '#PBS -v '* ]] && {
+      [[ -z $vars_line ]] && vars_line=$REPLY || vars_line+=", ${REPLY:8}"
+      continue
+    }
+    echo "$REPLY"
   done
-  ((${#var_directives[@]})) && {
-    echo -n "${var_directives[0]}"
-    unset "export_vars[0]"
-    for var_list in "${var_directives[@]#*v }"; do
-      echo -n ", $var_list"
-    done
-    echo
-  }
+  ((export_env)) && echo '#PBS -V'
+  [[ -n $vars_line ]] && echo "$vars_line"
   echo
   read -t 0 && cat || return 5
 }
