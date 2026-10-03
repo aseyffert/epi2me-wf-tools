@@ -10,6 +10,8 @@ base_script="$1"
 shift
 read -ra wrappers <<<"$@"
 
+[[ " ${wrappers[*]} " != *" _w_shebang "* ]] && wrappers+=(_w_shebang)
+
 declare -F "${wrappers[@]}" &>/dev/null || exit 4
 
 declare -a tmps
