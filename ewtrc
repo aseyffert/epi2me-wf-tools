@@ -67,7 +67,7 @@ _ewtrc_loaded_ok() {
   #         set_research_programme is a known function.
   local var
   local -a funcs vars
-  funcs=(_ewtrc_{echo,derive_dirname,constrain_paths} tless)
+  funcs=(_ewtrc_{echo,derive_dirname,constrain_paths})
   vars=(
     _EWTRC_VERBOSE EWT_HOME USER_LUSTRE
     NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG}
