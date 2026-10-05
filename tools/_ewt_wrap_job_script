@@ -20,10 +20,10 @@ until ((${#tmps[@]} == 2)); do
   tmps+=("$(mktemp --tmpdir -q ewt_tmp_XXXXXX.bash)") || exit 5
 done
 
-cat "$base_script" | _ewt_regularise_job_script >"${tmps[0]}"
+_ewt_regularise_job_script <"$base_script" >"${tmps[0]}" || exit 6
 for wrapper in "${wrappers[@]}"; do
-  $wrapper <"${tmps[0 - idx_offset]}" >"${tmps[1 - idx_offset]}"
+  $wrapper <"${tmps[0 - idx_offset]}" >"${tmps[1 - idx_offset]}" || exit 7
   ((idx_offset ? idx_offset-- : idx_offset++))
 done
 
-cat "${tmps[0 - idx_offset]}" | _ewt_consolidate_variable_lists
+_ewt_consolidate_variable_lists <"${tmps[0 - idx_offset]}" || exit 8

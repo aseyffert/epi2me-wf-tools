@@ -3,7 +3,7 @@ _ewt_regularise_job_script() {
   # NOTE: Trailing whitespace is stripped since we use echo.
   # NOTE: This implicitly ignores user-specified shebangs.
   local cnt=0 code_hit
-  read -t 1 || return 3
+  read -t 0 || return 3
   while
     ((cnt++))
     read -r
