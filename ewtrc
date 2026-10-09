@@ -163,6 +163,9 @@ export NXF_ANSI_LOG='false'
 module load chpc/BIOMODULES
 module load nextflow chpc/singularity 2>/dev/null
 
+# Prevents $HOME from leaking into nextflow's singularity auto mounts via $PWD.
+alias cd='cd -P'
+
 ### Compute node-only
 [[ $(hostname) == cnode+([[:digit:]]) ]] && {
   export NXF_OFFLINE='true'
@@ -174,8 +177,5 @@ export NXF_DISABLE_CHECK_LATEST='true'
 
 # Run `less` with ANSI colors support (used in nextflow log files) by default.
 # alias less="less -R"
-
-# Prevents $HOME from leaking into nextflow's singularity auto mounts via $PWD.
-alias cd='cd -P'
 
 export SINGULARITY_DISABLE_CACHE='true'
