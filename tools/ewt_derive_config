@@ -4,14 +4,19 @@
 
 _strats=('terminate' 'finish' 'ignore' 'retry')
 
+_default_errorStrategy='retry'
 _default_maxRetries=5
+
+declare -F _ewtrc_loaded_ok &>/dev/null && $_ || exit 42
+
+source "$EWT_HOME/src/parse_qstat.bash" || exit 3
 
 (($# <= 1)) || {
   echo >&2 "ERROR: Too many arguments; expected at most one."
   exit 1
 }
 
-declare -A vals=(['errorStrategy']='retry' ['maxRetries']=$_default_maxRetries)
+declare -A vals=(['errorStrategy']=$_default_errorStrategy ['maxRetries']=$_default_maxRetries)
 set -- "${1,,}" "$1"
 case $1 in
 '') : ;;
@@ -24,19 +29,8 @@ esac
   exit 2
 }
 
-while IFS=':' read -r var val; do
-  vals[$var]=$val
-done < <(_ewt_queue_stats 'serial')
-
-_vars_used=('max_queued' 'max_walltime')
-_derived_vars=${!vals[*]}
-for var in "${_vars_used[@]}"; do
-  [[ " $_derived_vars " == *" $var "* ]] || missing_vars+=("$var")
-done
-[[ ! -v missing_vars ]] || {
-  echo >&2 "ERROR: Missing vals for: ${missing_vars[*]}"
-  exit 4
-}
+vals['max_queued']="${QUEUE_STATS[serial:max_queued]}"
+vals['max_walltime']="${QUEUE_STATS[serial:resources_max.walltime]%%:*}"
 
 [[ -v NXF_HOME && -n $NXF_HOME ]] || exit 5
 cat >"$NXF_HOME/config" <<-EOF
