@@ -16,12 +16,12 @@ source "$EWT_HOME/src/parse_qstat.bash" || exit 3
   exit 1
 }
 
+shopt -s extglob
 declare -A vals=(['errorStrategy']=$_default_errorStrategy ['maxRetries']=$_default_maxRetries)
-set -- "${1,,}" "$1"
 case $1 in
 '') : ;;
-'^[0-9]+$') vals['maxRetries']=$1 ;;
-'^[a-z]+$') vals['errorStrategy']=$1 ;;
++([[:digit:]])) vals['maxRetries']=$(($1)) ;;
++([[:alpha:]])) vals['errorStrategy']=${1,,} ;;
 *) echo >&2 "ERROR: Could not parse \$1; got: $1" ;;
 esac
 [[ " ${_strats[*]} " == *" ${vals['errorStrategy']} "* ]] || {
