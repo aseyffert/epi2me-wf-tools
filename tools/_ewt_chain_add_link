@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Adds a link to the specified chain.
+#
+# NOTE: This code assumes only a single chain (or, equivalently, that each chain
+#         uses exactly one queue slot at all times, which might not be true.
+# TODO: Add code to manage handover queuing; one chain at a time!
+# IDEA: The handover management could be assumed implemented (via blocking?) in
+#         factory_args_dispenser; i.e., we could assume that said executable
+#         will dispense args in a multiple chains-aware fasion.
+
+ldir=$USER_LUSTRE/nxf_launchdir
+this_script=$(basename $(realpath $BASH_SOURCE))
+
+if (( $# == 0 )); then
+  echo "Usage: $this_script CHAIN_ID FACTORY FEEDER"
+  exit 1
+fi
+
+chainID=$1
+job_script_factory=$2
+factory_args_dispenser=$3
+
+[[ "$chainID" =~ [0-9]{2}[HM][0-9]{2} ]] || exit 1
+command -v "$job_script_factory" >/dev/null || exit 2
+command -v "$factory_args_dispenser" >/dev/null || exit 3
+
+$factory_args_dispenser | $job_script_factory $chainID
+cat <<- EOF
+	
+	# Add next link to the execution chain
+	echo "$this_script $chainID $job_script_factory $factory_args_dispenser | qsub"
+EOF
