@@ -63,8 +63,6 @@ _ewtrc_constrain_paths() {
 }
 
 _ewtrc_loaded_ok() {
-  # NOTE: This doesn't check that RESEARCH_PROGRAMME is set or that
-  #         set_research_programme is a known function.
   local var
   local -a funcs vars
   funcs=(_ewtrc_{echo,derive_dirname,constrain_paths})
@@ -116,8 +114,7 @@ export _EWTRC_VERBOSE
 #           are out of the way.
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
-#shellcheck disable=SC2086
-[[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname ${BASH_SOURCE[0]}) || {
+[[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
   _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
   unset EWT_HOME
   return 3
@@ -146,13 +143,6 @@ _ewtrc_constrain_paths "${ewtrc_lustre_only[*]}" USER_LUSTRE &&
 export "${ewtrc_lustre_only[@]}" "${ewtrc_lustre_or_home[@]}"
 
 [[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
-
-# FIXME:  This should be a function definition that uses a script in
-#           $EWT_HOME/tools to resolve the research programme string.
-# NOTE:   Users who belong to multiple groups must pass the desired
-#           RESEARCH_PROGRAMME string for a head job-style run via the -v option
-#           to qsub (or the corresponding #PBS line in the job script).
-[[ -v RESEARCH_PROGRAMME ]] || set_research_programme -p -q &>/dev/null
 
 # FIXME:  This should not be set to false for interactive runs; i.e., when the
 #           user starts an interactive PBS job and runs nextflow themselves.

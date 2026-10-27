@@ -9,8 +9,6 @@ _default_maxRetries=5
 
 declare -F _ewtrc_loaded_ok &>/dev/null && $_ || exit 42
 
-source "$EWT_HOME/src/parse_qstat.bash" || exit 3
-
 (($# <= 1)) || {
   echo >&2 "ERROR: Too many arguments; expected at most one."
   exit 1
@@ -29,9 +27,6 @@ esac
   exit 2
 }
 
-vals['max_queued']="${QUEUE_STATS[serial:max_queued]}"
-vals['max_walltime']="${QUEUE_STATS[serial:resources_max.walltime]%%:*}"
-
 [[ -v NXF_HOME && -n $NXF_HOME ]] || exit 5
 cat >"$NXF_HOME/config" <<-EOF
 // Provides CHPC-specific nextflow configuration required to run EPI2ME Labs's
@@ -44,24 +39,6 @@ profiles {
       maxRetries = ${vals['maxRetries']}
     }
     // envWhitelist = "CUDA_VISIBLE_DEVICES"                   // NOTE: untested
-  }
-
-  // NOTE: The head job itself (which handles processes via qsub calls) can run
-  //        on any (suitable) queue. The queue specified here controls the
-  //        queue to which said head job should submit jobs.
-  // NOTE: This profile is intended for use alongside the singularity profile;
-  //        to use it, pass \`-p singularity,head_job\` to \`nextflow run\`.
-  head_job {
-    process {
-      executor = 'pbspro'
-      clusterOptions = "-P \${env('RESEARCH_PROGRAMME')}"
-      module = ['chpc/singularity']
-
-      // NB: When changing queue, check (or change) time and queueSize.
-      queue = 'serial'
-      time = ${vals['max_walltime']}.h
-    }
-    executor.\$pbspro.queueSize = ${vals['max_queued']}
   }
 }
 EOF
