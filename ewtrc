@@ -122,7 +122,6 @@ trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
 trap - RETURN
 source "$EWT_HOME"/src/tless.bash
-source "$EWT_HOME"/src/research_programme_handling.bash
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
 export USER_LUSTRE=/mnt/lustre/users/$USER
