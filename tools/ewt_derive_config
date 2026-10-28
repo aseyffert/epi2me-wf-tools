@@ -14,6 +14,7 @@ declare -F _ewtrc_loaded_ok &>/dev/null && $_ || exit 42
   exit 1
 }
 
+# FIXME: Args need to be reworked to allow setting of local.submitRateLimit.
 shopt -s extglob
 declare -A vals=(['errorStrategy']=$_default_errorStrategy ['maxRetries']=$_default_maxRetries)
 case $1 in
@@ -38,6 +39,7 @@ profiles {
       errorStrategy = '${vals['errorStrategy']}'
       maxRetries = ${vals['maxRetries']}
     }
+    executor.\$local.submitRateLimit = 1
     // envWhitelist = "CUDA_VISIBLE_DEVICES"                   // NOTE: untested
   }
 }
