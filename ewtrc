@@ -87,14 +87,11 @@ _ewtrc_loaded_ok() {
 }
 
 ewtrc_cleanup() {
-  unset -v ewtrc_lustre_{only,or_home}
+  unset -v _ewtrc_lustre_{groups,users}_root
   unset -f ewtrc_cleanup
 }
 
 export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
-
-ewtrc_lustre_only=(NXF_WORK NXF_SINGULARITY_CACHEDIR)
-ewtrc_lustre_or_home=(EWT_HOME NXF_HOME)
 
 # NOTE: The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
 #         but that suppresses error reporting for interactive jobs as well.
@@ -124,7 +121,10 @@ trap - RETURN
 source "$EWT_HOME"/src/tless.bash
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
-export USER_LUSTRE=/mnt/lustre/users/$USER
+_ewtrc_lustre_groups_root=/mnt/lustre/groups
+_ewtrc_lustre_users_root=/mnt/lustre/users
+
+export USER_LUSTRE=$_ewtrc_lustre_users_root/$USER
 
 # NOTE:   The fallbacks for NXF_{WORK,SING*} are on lustre to protect $HOME from
 #           heavy I/O loads.
@@ -135,11 +135,12 @@ export USER_LUSTRE=/mnt/lustre/users/$USER
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
-_ewtrc_constrain_paths "${ewtrc_lustre_only[*]}" USER_LUSTRE &&
-  _ewtrc_constrain_paths "${ewtrc_lustre_or_home[*]}" USER_LUSTRE HOME ||
+_ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
+  _ewtrc_constrain_paths EWT_HOME _ewtrc_lustre_{groups,users}_root HOME &&
+  _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
   return 4
 
-export "${ewtrc_lustre_only[@]}" "${ewtrc_lustre_or_home[@]}"
+export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
 
 [[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
 
