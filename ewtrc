@@ -131,6 +131,7 @@ export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 # NB: No source calls beyond this point!
 
+# NOTE: Pathy vars checked here should not be exported before this check.
 _ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   _ewtrc_constrain_paths EWT_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT HOME &&
   _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
