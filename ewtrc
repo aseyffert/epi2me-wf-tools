@@ -129,7 +129,8 @@ export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 
 # NOTE:   The trap reset must happen in the global scope.
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
-# NB: No source calls beyond this point!
+
+# NB: === NO SOURCE CALLS BEYOND THIS POINT! ===
 
 # NOTE: Pathy vars checked here should not be exported before this check.
 _ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
