@@ -106,16 +106,19 @@ ewtrc_cleanup() {
 }
 [[ $- =~ 'i' ]] && source "$EWT_HOME"/src/tless.bash && export -f tless
 
+# Site-specific constants
 _EWTRC_RGX_CNODE='cnode+([[:digit:]])'
+_EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
+_EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 
-export _EWTRC_VERBOSE
+# Provided vars/funcs
+export _EWTRC_{VERBOSE,RGX_CNODE,LUSTRE_{GROUPS,USERS}_ROOT}
 export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
 
-_ewtrc_lustre_groups_root=/mnt/lustre/groups
-_ewtrc_lustre_users_root=/mnt/lustre/users
+# Derived vars
+export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 
-export USER_LUSTRE=$_ewtrc_lustre_users_root/$USER
-
+## Respectful vars
 # NB:     This fallback for NXF_WORK should not be treated as a default!
 #           None of the tools that this package provides are designed to use
 #           a monolithic NXF_WORK directory like this.
@@ -129,7 +132,7 @@ trap 'ewtrc_cleanup; trap - RETURN' RETURN
 # NB: No source calls beyond this point!
 
 _ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
-  _ewtrc_constrain_paths EWT_HOME _ewtrc_lustre_{groups,users}_root HOME &&
+  _ewtrc_constrain_paths EWT_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT HOME &&
   _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
   return 4
 
