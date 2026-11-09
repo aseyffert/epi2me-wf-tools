@@ -63,7 +63,6 @@ _ewtrc_constrain_paths() {
 }
 
 _ewtrc_loaded_ok() {
-  local var
   local -a funcs vars
   funcs=(_ewtrc_{echo,derive_dirname,constrain_paths})
   vars=(
@@ -74,11 +73,9 @@ _ewtrc_loaded_ok() {
     vars+=(NXF_OFFLINE) ||
     vars+=(NXF_DISABLE_CHECK_LATEST SINGULARITY_DISABLE_CACHE)
 
-  declare -F "${funcs[@]}" &>/dev/null || return
-  for var in "${vars[@]}"; do
-    [[ -v $var ]] || return
-  done
-  [[ $PATH =~ $EWT_HOME/tools ]] || return
+  declare -F "${funcs[@]}" &>/dev/null &&
+    declare -p "${vars[@]}" &>/dev/null &&
+    [[ $PATH =~ $EWT_HOME/tools ]]
   # TODO: Add check for the nextflow and singularity modules
   # TODO: Implement a sensible check that -P is in effect for cd on non-cnodes.
   # option:
