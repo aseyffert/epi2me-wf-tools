@@ -95,7 +95,7 @@ export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
 
 # NOTE: The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
 #         but that suppresses error reporting for interactive jobs as well.
-[[ ! $- =~ 'i' ]] && _EWTRC_VERBOSE=0
+[[ $- =~ 'i' ]] || _EWTRC_VERBOSE=0
 : "${_EWTRC_VERBOSE:=1}"
 export _EWTRC_VERBOSE
 
