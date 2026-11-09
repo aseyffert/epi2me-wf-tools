@@ -98,6 +98,7 @@ ewtrc_cleanup() {
   exit 1
 }
 
+# EWT part
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
   _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
   unset EWT_HOME
@@ -126,8 +127,7 @@ export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
-# NOTE:   The trap unset part must happen in the global scope; it cannot happen
-#           inside a function (i.e., it cannot happen inside ewtrc_cleanup).
+# NOTE:   The trap reset must happen in the global scope.
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 # NB: No source calls beyond this point!
 
