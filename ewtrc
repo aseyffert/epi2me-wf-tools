@@ -116,8 +116,6 @@ _ewtrc_lustre_users_root=/mnt/lustre/users
 
 export USER_LUSTRE=$_ewtrc_lustre_users_root/$USER
 
-# NOTE:   The fallbacks for NXF_{WORK,SING*} are on lustre to protect $HOME from
-#           heavy I/O loads.
 # NB:     This fallback for NXF_WORK should not be treated as a default!
 #           None of the tools that this package provides are designed to use
 #           a monolithic NXF_WORK directory like this.
