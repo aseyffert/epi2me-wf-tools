@@ -107,19 +107,20 @@ ewtrc_cleanup() {
 }
 [[ $- =~ 'i' ]] && source "$EWT_HOME"/src/tless.bash && export -f tless
 
-# Site-specific constants
+# --- Site-specific constants ---
 _EWTRC_RGX_CNODE='cnode+([[:digit:]])'
 _EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
 _EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 
-# Provided vars/funcs
+# --- Provided vars/funcs ---
 export _EWTRC_{VERBOSE,RGX_CNODE,LUSTRE_{GROUPS,USERS}_ROOT}
 export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
 
-# Derived vars
+# --- Derived vars ---
 export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 
-## Respectful vars
+## --- Respectful vars ---
+# (i.e., vars that can be set by the user before sourcing ewtrc)
 # NB:     This fallback for NXF_WORK should not be treated as a default!
 #           None of the tools that this package provides are designed to use
 #           a monolithic NXF_WORK directory like this.
