@@ -106,10 +106,6 @@ ewtrc_cleanup() {
 }
 [[ $- =~ 'i' ]] && source "$EWT_HOME"/src/tless.bash && export -f tless
 
-# NOTE:   The trap unset part must happen in the global scope; it cannot happen
-#           inside a function (i.e., it cannot happen inside ewtrc_cleanup).
-trap 'ewtrc_cleanup; trap - RETURN' RETURN
-# NB: No source calls beyond this point!
 
 export _EWTRC_VERBOSE
 export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
@@ -127,6 +123,11 @@ export USER_LUSTRE=$_ewtrc_lustre_users_root/$USER
 : "${NXF_HOME:=$HOME/.nextflow}"
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
+
+# NOTE:   The trap unset part must happen in the global scope; it cannot happen
+#           inside a function (i.e., it cannot happen inside ewtrc_cleanup).
+trap 'ewtrc_cleanup; trap - RETURN' RETURN
+# NB: No source calls beyond this point!
 
 _ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   _ewtrc_constrain_paths EWT_HOME _ewtrc_lustre_{groups,users}_root HOME &&
