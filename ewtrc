@@ -90,8 +90,7 @@ ewtrc_cleanup() {
 
 # NOTE:   The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
 #           but that suppresses error reporting for interactive jobs as well.
-[[ $- =~ 'i' ]] || _EWTRC_VERBOSE=0
-: "${_EWTRC_VERBOSE:=1}"
+[[ $- =~ 'i' ]] && _EWTRC_VERBOSE=1 || _EWTRC_VERBOSE=0
 
 [[ ${BASH_SOURCE[0]} != "$0" ]] || {
   _ewtrc_echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
