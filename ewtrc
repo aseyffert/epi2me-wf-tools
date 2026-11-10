@@ -148,8 +148,14 @@ export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
 
 # This is actually just a call to `module use` that prepends the appropriate
 #   directory (which houses the nextflow module, among others) to MODULEPATH.
-module load chpc/BIOMODULES
-module load nextflow chpc/singularity 2>/dev/null
+module load chpc/BIOMODULES || {
+  _ewtrc_echo >&2 'ERROR: Could not add BIOMODULES to MODULEPATH.'
+  return 5
+}
+module load nextflow chpc/singularity 2>/dev/null || {
+  _ewtrc_echo >&2 'ERROR: nextflow and/or singularity module load failed.'
+  return 6
+}
 
 # Prevents $HOME from leaking into nextflow's singularity auto mounts via $PWD.
 alias cd='cd -P'
