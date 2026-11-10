@@ -133,17 +133,6 @@ trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
 # NB: === NO SOURCE CALLS BEYOND THIS POINT! ===
 
-# NOTE:   Pathy vars checked here should not be exported before this check.
-_ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
-  _ewtrc_constrain_paths EWT_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT HOME &&
-  _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
-  return 4
-
-export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
-[[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
-# Nextflow handles the interactive case.
-[[ $- =~ 'i' ]] || export NXF_ANSI_LOG='false'
-
 # This is actually just a call to `module use` that prepends the appropriate
 #   directory (which houses the nextflow module, among others) to MODULEPATH.
 module load chpc/BIOMODULES || {
@@ -154,6 +143,17 @@ module load nextflow chpc/singularity 2>/dev/null || {
   _ewtrc_echo >&2 'ERROR: nextflow and/or singularity module load failed.'
   return 6
 }
+
+# NOTE:   Pathy vars checked here should not be exported before this check.
+_ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
+  _ewtrc_constrain_paths EWT_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT HOME &&
+  _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
+  return 4
+
+export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
+[[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
+# Nextflow handles the interactive case.
+[[ $- =~ 'i' ]] || export NXF_ANSI_LOG='false'
 
 # Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
 alias cd='cd -P'
