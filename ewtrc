@@ -140,10 +140,8 @@ _ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   return 4
 
 export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
-
 [[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
-
-# NOTE:   Leaves the interactive case to Nextflow.
+# Nextflow handles the interactive case.
 [[ $- =~ 'i' ]] || export NXF_ANSI_LOG='false'
 
 # This is actually just a call to `module use` that prepends the appropriate
@@ -157,7 +155,7 @@ module load nextflow chpc/singularity 2>/dev/null || {
   return 6
 }
 
-# Prevents $HOME from leaking into nextflow's singularity auto mounts via $PWD.
+# Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
 alias cd='cd -P'
 
 ### Compute node-only
