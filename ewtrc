@@ -88,8 +88,8 @@ ewtrc_cleanup() {
   unset -f ewtrc_cleanup
 }
 
-# NOTE: The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
-#         but that suppresses error reporting for interactive jobs as well.
+# NOTE:   The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
+#           but that suppresses error reporting for interactive jobs as well.
 [[ $- =~ 'i' ]] || _EWTRC_VERBOSE=0
 : "${_EWTRC_VERBOSE:=1}"
 
@@ -133,7 +133,7 @@ trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
 # NB: === NO SOURCE CALLS BEYOND THIS POINT! ===
 
-# NOTE: Pathy vars checked here should not be exported before this check.
+# NOTE:   Pathy vars checked here should not be exported before this check.
 _ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   _ewtrc_constrain_paths EWT_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT HOME &&
   _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
