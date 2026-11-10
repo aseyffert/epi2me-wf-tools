@@ -69,7 +69,7 @@ _ewtrc_loaded_ok() {
     _EWTRC_VERBOSE EWT_HOME USER_LUSTRE
     NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG}
   )
-  [[ $(hostname) == "$_EWTRC_RGX_CNODE " ]] &&
+  [[ $(hostname) == $_EWTRC_GLOB_CNODE ]] &&
     vars+=(NXF_OFFLINE) ||
     vars+=(NXF_DISABLE_CHECK_LATEST SINGULARITY_DISABLE_CACHE)
 
@@ -108,12 +108,12 @@ ewtrc_cleanup() {
 [[ $- =~ 'i' ]] && source "$EWT_HOME"/src/tless.bash && export -f tless
 
 # --- Site-specific constants ---
-_EWTRC_RGX_CNODE='cnode+([[:digit:]])'
+_EWTRC_GLOB_CNODE='cnode+([[:digit:]])'
 _EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
 _EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 
 # --- Provided vars/funcs ---
-export _EWTRC_{VERBOSE,RGX_CNODE,LUSTRE_{GROUPS,USERS}_ROOT}
+export _EWTRC_{VERBOSE,GLOB_CNODE,LUSTRE_{GROUPS,USERS}_ROOT}
 export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
 
 # --- Derived vars ---
@@ -159,7 +159,7 @@ export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
 alias cd='cd -P'
 
 ### Compute node-only
-[[ $(hostname) == $_EWTRC_RGX_CNODE ]] && {
+[[ $(hostname) == $_EWTRC_GLOB_CNODE ]] && {
   export NXF_OFFLINE='true'
   return
 }
