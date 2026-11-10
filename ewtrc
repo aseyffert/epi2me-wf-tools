@@ -159,7 +159,7 @@ export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
 alias cd='cd -P'
 
 ### Compute node-only
-[[ $(hostname) == "$_EWTRC_RGX_CNODE" ]] && {
+[[ $(hostname) == $_EWTRC_RGX_CNODE ]] && {
   export NXF_OFFLINE='true'
   return
 }
