@@ -143,9 +143,8 @@ export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
 
 [[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
 
-# FIXME:  This should not be set to false for interactive runs; i.e., when the
-#           user starts an interactive PBS job and runs nextflow themselves.
-export NXF_ANSI_LOG='false'
+# NOTE:   Leaves the interactive case to Nextflow.
+[[ $- =~ 'i' ]] || export NXF_ANSI_LOG='false'
 
 # This is actually just a call to `module use` that prepends the appropriate
 #   directory (which houses the nextflow module, among others) to MODULEPATH.
