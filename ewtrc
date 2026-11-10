@@ -137,18 +137,18 @@ trap 'ewtrc_cleanup; trap - RETURN' RETURN
 #   directory (which houses the nextflow module, among others) to MODULEPATH.
 module load chpc/BIOMODULES || {
   _ewtrc_echo >&2 'ERROR: Could not add BIOMODULES to MODULEPATH.'
-  return 5
+  return 4
 }
 module load nextflow chpc/singularity 2>/dev/null || {
   _ewtrc_echo >&2 'ERROR: nextflow and/or singularity module load failed.'
-  return 6
+  return 5
 }
 
 # NOTE:   Pathy vars checked here should not be exported before this check.
 _ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   _ewtrc_constrain_paths EWT_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT HOME &&
   _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
-  return 4
+  return 6
 
 export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
 [[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
