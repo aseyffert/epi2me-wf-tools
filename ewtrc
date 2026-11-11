@@ -152,14 +152,7 @@ _ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   _ewtrc_constrain_paths EWT_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT HOME &&
   _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
   return 6
-
-export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
-[[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
-# Nextflow handles the interactive case.
-[[ $- =~ 'i' ]] || export NXF_ANSI_LOG='false'
-
-# Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
-alias cd='cd -P'
+export NXF_{WORK,SINGULARITY_CACHEDIR} {EWT,NXF}_HOME
 
 if [[ " ${ewtrc_online_nodes[*]} " == *" $(hostname) "* ]]; then
   export NXF_DISABLE_CHECK_LATEST='true'
@@ -168,5 +161,14 @@ else
   export NXF_OFFLINE='true'
 fi
 
-# Run `less` with ANSI colors support (used in nextflow log files) by default.
-# alias less="less -R"
+[[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
+
+# Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
+alias cd='cd -P'
+
+[[ $- =~ 'i' ]] || {
+  # Nextflow handles the interactive case.
+  export NXF_ANSI_LOG='false'
+  # Run `less` with ANSI colors support (used in nextflow log files) by default.
+  alias less="less -R"
+}
