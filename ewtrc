@@ -22,46 +22,6 @@ _ewtrc_derive_dirname() {
   echo "${full_path%/*}"
 }
 
-_ewtrc_constrain_paths() {
-  local {pathy,check,constraint,fail}_var var_pass
-  local -a {check,constraint,fail}_vars
-  read -ra check_vars <<<"$1"
-  shift
-  read -ra constraint_vars <<<"$@"
-  ((${#check_vars[@]} * ${#constraint_vars[@]})) || return
-  for pathy_var in "${check_vars[@]}" "${constraint_vars[@]}"; do
-    [[ ${!pathy_var} == /* ]] || {
-      _ewtrc_echo >&2 "ERROR: $pathy_var not an absolute path."
-      return 3
-    }
-  done
-  for constraint_var in "${constraint_vars[@]}"; do
-    [[ -d ${!constraint_var} ]] || {
-      _ewtrc_echo >&2 "ERROR: $constraint_var not a directory."
-      return 4
-    }
-  done
-  for check_var in "${check_vars[@]}"; do
-    for constraint_var in "${constraint_vars[@]}"; do
-      [[ ${!check_var} == ${!constraint_var}/* ]] && var_pass=1 && break
-    done
-    ((var_pass)) || fail_vars+=("$check_var")
-    unset var_pass
-  done
-  ((${#fail_vars[@]} == 0)) || {
-    _ewtrc_echo >&2 "ERROR: (Some) pathy variables not on allowed paths:"
-    _ewtrc_echo >&2 "Variables (and current targets):"
-    for fail_var in "${fail_vars[@]}"; do
-      _ewtrc_echo >&2 "\t$fail_var = ${!fail_var}"
-    done
-    _ewtrc_echo >&2 "Allowed paths:"
-    for constraint_var in "${constraint_vars[@]}"; do
-      _ewtrc_echo >&2 "\t${!constraint_var}/*"
-    done
-    return 5
-  }
-}
-
 _ewtrc_loaded_ok() {
   # Checks whether the work ewtrc does has been done in calling environment.
   [[ -v _EWTRC_ONLINE_NODES ]] || return
@@ -108,6 +68,8 @@ ewtrc_cleanup() {
   return 3
 }
 
+source "$EWT_HOME/src/utils/constrain_paths.bash"
+export -f constrain_paths
 [[ $- =~ 'i' ]] && source "$EWT_HOME/src/utils/tless.bash" && export -f tless
 
 # --- Constants ---
