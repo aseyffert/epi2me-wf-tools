@@ -111,9 +111,10 @@ module load nextflow chpc/singularity 2>/dev/null || {
 }
 
 # NOTE:   Pathy vars checked here should not be exported before this check.
-_ewtrc_constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
-  _ewtrc_constrain_paths EWT_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT HOME &&
-  _ewtrc_constrain_paths NXF_HOME USER_LUSTRE HOME ||
+((_EWTRC_VERBOSE)) && unset ewtrc_qopt || ewtrc_qopt='-q'
+constrain_paths "$ewtrc_qopt" 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
+  constrain_paths "$ewtrc_qopt" EWT_HOME "${!_EWTRC_LUSTRE_@}" HOME &&
+  constrain_paths "$ewtrc_qopt" NXF_HOME USER_LUSTRE HOME ||
   return 6
 export NXF_{WORK,SINGULARITY_CACHEDIR} {EWT,NXF}_HOME
 
