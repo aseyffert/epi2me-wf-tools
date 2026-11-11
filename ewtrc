@@ -63,13 +63,16 @@ _ewtrc_constrain_paths() {
 }
 
 _ewtrc_loaded_ok() {
-  local -a funcs vars
+  # Checks whether the work ewtrc does has been done in calling environment.
+  [[ -v _EWTRC_ONLINE_NODES ]] || return
+  local -a funcs vars online_nodes
   funcs=(_ewtrc_{echo,derive_dirname,constrain_paths})
   vars=(
     _EWTRC_VERBOSE EWT_HOME USER_LUSTRE
     NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG}
   )
-  [[ $(hostname) == $_EWTRC_GLOB_CNODE ]] &&
+  IFS=':' read -ra online_nodes <<<"$_EWTRC_ONLINE_NODES"
+  [[ " ${online_nodes[*]} " == *" $(hostname) "* ]] &&
     vars+=(NXF_OFFLINE) ||
     vars+=(NXF_DISABLE_CHECK_LATEST SINGULARITY_DISABLE_CACHE)
 
@@ -107,13 +110,14 @@ ewtrc_cleanup() {
 [[ $- =~ 'i' ]] && source "$EWT_HOME"/src/tless.bash && export -f tless
 
 # --- Site-specific constants ---
-_EWTRC_GLOB_CNODE='cnode+([[:digit:]])'
+ewtrc_online_nodes=('login1' 'dtn')
+IFS=':' _EWTRC_ONLINE_NODES=${ewtrc_online_nodes[*]}
 _EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
 _EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 
 # --- Provided vars/funcs ---
-export _EWTRC_{VERBOSE,GLOB_CNODE,LUSTRE_{GROUPS,USERS}_ROOT}
 export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
+export _EWTRC_{VERBOSE,ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 
 # --- Derived vars ---
 export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
@@ -157,16 +161,12 @@ export NXF_{WORK,SINGULARITY_CACHEDIR,HOME} EWT_HOME
 # Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
 alias cd='cd -P'
 
-### Compute node-only
-[[ $(hostname) == $_EWTRC_GLOB_CNODE ]] && {
+if [[ " ${ewtrc_online_nodes[*]} " == *" $(hostname) "* ]]; then
+  export NXF_DISABLE_CHECK_LATEST='true'
+  export SINGULARITY_DISABLE_CACHE='true'
+else
   export NXF_OFFLINE='true'
-  return
-}
-
-### Other nodes
-export NXF_DISABLE_CHECK_LATEST='true'
+fi
 
 # Run `less` with ANSI colors support (used in nextflow log files) by default.
 # alias less="less -R"
-
-export SINGULARITY_DISABLE_CACHE='true'
