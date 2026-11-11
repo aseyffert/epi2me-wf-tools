@@ -107,9 +107,10 @@ ewtrc_cleanup() {
   ewtrc_cleanup
   return 3
 }
-[[ $- =~ 'i' ]] && source "$EWT_HOME"/src/tless.bash && export -f tless
 
-# --- Site-specific constants ---
+[[ $- =~ 'i' ]] && source "$EWT_HOME/src/utils/tless.bash" && export -f tless
+
+# --- Constants ---
 ewtrc_online_nodes=('login1' 'dtn')
 IFS=':' _EWTRC_ONLINE_NODES=${ewtrc_online_nodes[*]}
 _EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
