@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#
 # Sets up the user's environment to run EPI2ME workflows on the CHPC.
 #
 # To perform said setup, source this script; e.g., issue this command:
