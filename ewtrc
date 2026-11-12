@@ -1,13 +1,70 @@
-# Sets up the user's environment to run EPI2ME workflows on the CHPC.
-#
-# To perform said setup, source this script; e.g., issue this command:
-#     source /absolute/path/to/ewtrc
-# To have it performed at login, add said command (or equivalent) to your
-#   $HOME/.bashrc file (at your own risk; typically to the end of it).
-#
-# Only the values of the EWT_HOME and NXF_{HOME,WORK,SINGULARITY_CACHEDIR}
-#   environment variables are respected if already set, though said values must
-#   still each point to a location on an appropriate filesystem.
+# Prepares the user's environment to run EPI2ME workflows on the CHPC.
+
+: <<'__ewtrc_DOC_'
+Usage:
+  With ewtrc located in directory EWT_HOME, do
+
+    source EWT_HOME/ewtrc
+
+  Example: source /home/user/epi2me-wf-tools/ewtrc
+
+  To have ewtrc run at login, add the above line
+  toward the end of your $HOME/.bashrc. While ewtrc can derive EWT_HOME from
+  the path you provide, you can also set it yourself to make your .bashrc more
+  readable; e.g.,
+
+    EWT_HOME=/home/user/epi2me-wf-tools
+    source "$EWT_HOME/ewtrc"
+
+Description:
+  The main focus of this script is to ensure that `nextflow` and `singularity`
+  have everything they need to run EPI2ME Labs workflows on the CHPC.
+
+Exports (variables):
+  In the below lists, variables tagged with an 'r' (in brackets) are respectful;
+  i.e., if they're set before ewtrc is source, ewtrc respects the set value.
+  (Note that, while the set values are respected, they are still checked to
+    ensure that they are on an appropriate filesystem; e.g., NXF_WORK must be
+    on USER_LUSTRE.)
+
+  General:
+    - (r) EWT_HOME: Path to the epi2me-wf-tools directory. (Derived if not set.)
+    - USER_LUSTRE: Path to user's personal lustre directory.
+    - PATH: Appends the EWT_HOME/tools directory to the user's PATH variable.
+
+  Nextflow:
+    - (r) NXF_HOME: Nextflow's home directory. (Default: $HOME/.nextflow)
+    - (r) NXF_SINGULARITY_CACHEDIR: Directory where Nextflow will store cached
+        Singularity images. (Default: $USER_LUSTRE/singularity_cache; not to be
+        confused with Singularity's cache directory, or with Nextflow's local
+        Singularity library directory!)
+    - (r) NXF_WORK: Directory where intermediate workflow artifacts live.
+        (Default: $USER_LUSTRE/nextflow_work)
+    - NXF_DISABLE_CHECK_LATEST: Disables automatic workflow updates.
+        (Only set on nodes that have access to the internet.)
+    - NXF_OFFLINE: Tells Nextflow to run in offline mode.
+        (Only set on nodes that don't have access to the internet.)
+    - NXF_ANSI_LOG: Controls the use of ANSI escape sequences in Nextflow logs.
+        (Only set during non-interactive sessions to disable ANSI sequences.)
+
+  Singularity:
+    - SINGULARITY_DISABLE_CACHE: Turns off the caching that happens when
+        Singularity builds an image (usually as part of a `pull` call).
+        (Only set on nodes that have access to the internet.)
+
+  Non-public: (i.e., for use in this script, or by other things in EWT_HOME.)
+    - _EWTRC_VERBOSE: Encodes whether it's safe to print to stdout/stderr.
+        (Allows verbose error reporting without breaking tools like `scp`.)
+    - _EWTRC_ONLINE_NODES: A colon-seperated list of the hostnames of nodes that
+        have access to the internet.
+    - _EWTRC_LUSTRE_GROUPS_ROOT: The path to the lustre directory that houses
+        all the various groups' lustre directories.
+        (Allows more freedom for some of the paths specified above.)
+    - _EWTRC_LUSTRE_USERS_ROOT: The path to the lustre directory that houses
+        all the users' lustre directories.
+        (Allows more freedom for some of the paths specified above.)
+
+__ewtrc_DOC_
 
 _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
 
