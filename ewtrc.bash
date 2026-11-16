@@ -2,19 +2,19 @@
 
 : <<'__ewtrc_DOC_'
 Usage:
-  With ewtrc located in directory EWT_HOME, do
+  With ewtrc.bash located in directory EWT_HOME, do
 
-    source EWT_HOME/ewtrc
+    source EWT_HOME/ewtrc.bash
 
-  Example: source /home/user/epi2me-wf-tools/ewtrc
+  Example: source /home/user/epi2me-wf-tools/ewtrc.bash
 
-  To have ewtrc run at login, add the above line
-  toward the end of your $HOME/.bashrc. While ewtrc can derive EWT_HOME from
+  To have ewtrc.bash run at login, add the above line
+  toward the end of your $HOME/.bashrc. While ewtrc.bash can derive EWT_HOME from
   the path you provide, you can also set it yourself to make your .bashrc more
   readable; e.g.,
 
     EWT_HOME=/home/user/epi2me-wf-tools
-    source "$EWT_HOME/ewtrc"
+    source "$EWT_HOME/ewtrc.bash"
 
 Description:
   The main focus of this script is to ensure that `nextflow` and `singularity`
@@ -22,7 +22,7 @@ Description:
 
 Exports (variables):
   In the below lists, variables tagged with an 'r' (in brackets) are respectful;
-  i.e., if they're set before ewtrc is source, ewtrc respects the set value.
+  i.e., if they are set before ewtrc.bash is source, it respects the set value.
   (Note that, while the set values are respected, they are still checked to
     ensure that they are on an appropriate filesystem; e.g., NXF_WORK must be
     on USER_LUSTRE.)
@@ -78,7 +78,7 @@ _ewtrc_derive_dirname() {
 }
 
 _ewtrc_loaded_ok() {
-  # Checks whether the work ewtrc does has been done in calling environment.
+  # Checks that the work ewtrc.bash does has been done in calling environment.
   [[ -v _EWTRC_ONLINE_NODES ]] || return
   local -a funcs vars online_nodes
   funcs=(_ewtrc_{echo,derive_dirname,constrain_paths})
@@ -141,7 +141,7 @@ export _EWTRC_{VERBOSE,ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 
 ## --- Respectful vars ---
-# (i.e., vars that can be set by the user before sourcing ewtrc)
+# (i.e., vars that can be set by the user before sourcing ewtrc.bash)
 # NB:     This fallback for NXF_WORK should not be treated as a default!
 #           None of the tools that this package provides are designed to use
 #           a monolithic NXF_WORK directory like this.
