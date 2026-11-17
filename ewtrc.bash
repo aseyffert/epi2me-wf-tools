@@ -57,6 +57,13 @@ Exports (variables):
     variables; i.e., variables provided for internal use by other tools in this
     toolkit, or by developers of other toolkits.
     (See the __ewtrc_DOC_dev_ doc block for more detail.)
+
+Exports (functions):
+  Utility:
+    - tless(): Useful for viewing TSV files that contain data in columns.
+        EPI2ME Labs workflows often produce such files as part of their output;
+        they often don't render nicely when viewed via `less -S` (or similar).
+        (Only exported for interactive sessions; See `tless -h` for usage.)
 __ewtrc_DOC_
 
 _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
@@ -203,4 +210,23 @@ Exports (variables):
     - _EWTRC_LUSTRE_USERS_ROOT: The path to the lustre directory that houses
         all the users' lustre directories.
         (Allows more freedom for some of the paths specified above.)
+
+Exports (functions):
+  Non-public:
+    - _ewtrc_echo: _EWTRC_VERBOSE-aware replacement for `echo`; use it in any
+        code that might run during `scp` operations or similar.
+    - _ewtrc_derive_dirname: (Crudely) resolves the directory that hosts the
+        source file it's called in. This should ONLY be used to detect where
+        run scripts like this one reside, so the user needn't do anything more
+        than sourcing said script in their .bashrc file.
+    - _ewtrc_loaded_ok: Checks that the calling environment resembles one where
+        ewtrc.bash was sourced without error. It acts as a safeguard; when
+        called at the start of a script, it allows the author to confidently
+        presume that the various bits provided by this script exist in their
+        environment; i.e., it frees the author up because they don't need to
+        check for existence around every corner.
+        Example usage:
+          declare -F _ewtrc_loaded_ok &>/dev/null && $_ || exit 42
+        (We use exit code 42 to free up the lower codes for the authors' use,
+        and so such a failure is easily recognisable.)
 __ewtrc_DOC_dev_
