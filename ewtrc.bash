@@ -52,18 +52,11 @@ Exports (variables):
         Singularity builds an image (usually as part of a `pull` call).
         (Only set on nodes that have access to the internet.)
 
-  Non-public: (i.e., for use in this script, or by other things in EWT_HOME.)
-    - _EWTRC_VERBOSE: Encodes whether it's safe to print to stdout/stderr.
-        (Allows verbose error reporting without breaking tools like `scp`.)
-    - _EWTRC_ONLINE_NODES: A colon-seperated list of the hostnames of nodes that
-        have access to the internet.
-    - _EWTRC_LUSTRE_GROUPS_ROOT: The path to the lustre directory that houses
-        all the various groups' lustre directories.
-        (Allows more freedom for some of the paths specified above.)
-    - _EWTRC_LUSTRE_USERS_ROOT: The path to the lustre directory that houses
-        all the users' lustre directories.
-        (Allows more freedom for some of the paths specified above.)
-
+  Non-public:
+    Along with the above variables, ewtrc.bash exports a number of "non-public"
+    variables; i.e., variables provided for internal use by other tools in this
+    toolkit, or by developers of other toolkits.
+    (See the __ewtrc_DOC_dev_ doc block for more detail.)
 __ewtrc_DOC_
 
 _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
@@ -191,3 +184,23 @@ alias cd='cd -P'
   # Run `less` with ANSI colors support (used in nextflow log files) by default.
   alias less="less -R"
 }
+
+: <<'__ewtrc_DOC_dev_'
+For developers/maintainers:
+  In addition to what is documented in __ewtrc_DOC_, ewtrc.bash provides a
+  number of "non-public" variables and functions. These should never be
+  relevant to the user beyond the fact that they exist in their environment.
+
+Exports (variables):
+  Non-public: (i.e., for use in this script, or by other things in EWT_HOME.)
+    - _EWTRC_VERBOSE: Encodes whether it's safe to print to stdout/stderr.
+        (Allows verbose error reporting without breaking tools like `scp`.)
+    - _EWTRC_ONLINE_NODES: A colon-seperated list of the hostnames of nodes that
+        have access to the internet.
+    - _EWTRC_LUSTRE_GROUPS_ROOT: The path to the lustre directory that houses
+        all the various groups' lustre directories.
+        (Allows more freedom for some of the paths specified above.)
+    - _EWTRC_LUSTRE_USERS_ROOT: The path to the lustre directory that houses
+        all the users' lustre directories.
+        (Allows more freedom for some of the paths specified above.)
+__ewtrc_DOC_dev_
