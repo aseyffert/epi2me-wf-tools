@@ -134,7 +134,7 @@ _EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
 _EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 
 # --- Provided vars/funcs ---
-export -f _ewtrc_{echo,derive_dirname,constrain_paths,loaded_ok}
+export -f _ewtrc_{echo,derive_dirname,loaded_ok}
 export _EWTRC_{VERBOSE,ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 
 # --- Derived vars ---
