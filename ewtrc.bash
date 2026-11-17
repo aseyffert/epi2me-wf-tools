@@ -8,17 +8,16 @@ Usage:
 
   Example: source /home/rfranklin/epi2me-wf-tools/ewtrc.bash
 
-  To have ewtrc.bash run at login, add the above line
-  toward the end of your $HOME/.bashrc. While ewtrc.bash can derive EWT_HOME from
-  the path you provide, you can also set it yourself to make your .bashrc more
-  readable; e.g.,
+  To have ewtrc.bash run at login, add the above line toward the end of your
+  $HOME/.bashrc file. While ewtrc.bash can derive EWT_HOME itself, the safer,
+  more readable option is to set it before soucing ewtrc.bash; e.g.,
 
     EWT_HOME=/home/rfranklin/epi2me-wf-tools
     source "$EWT_HOME/ewtrc.bash"
 
 Description:
-  The main focus of this script is to ensure that `nextflow` and `singularity`
-  have everything they need to run EPI2ME Labs workflows on the CHPC.
+  The main focus of this script is to ensure that the nextflow and singularity
+  tools have everything they need to run EPI2ME Labs workflows on the CHPC.
 
 Exports (variables):
   In the below lists, variables tagged with an 'r' (in brackets) are respectful;
@@ -49,7 +48,7 @@ Exports (variables):
 
   Singularity:
     - SINGULARITY_DISABLE_CACHE: Turns off the caching that happens when
-        Singularity builds an image (usually as part of a `pull` call).
+        Singularity builds an image (usually as part of a "pull" call).
         (Only set on nodes that have access to the internet.)
 
   Non-public:
@@ -62,8 +61,8 @@ Exports (functions):
   Utility:
     - tless(): Useful for viewing TSV files that contain data in columns.
         EPI2ME Labs workflows often produce such files as part of their output;
-        they often don't render nicely when viewed via `less -S` (or similar).
-        (Only exported for interactive sessions; See `tless -h` for usage.)
+        they often don't render nicely when viewed via "less -S" (or similar).
+        (Only exported for interactive sessions; See "tless -h" for usage.)
 __ewtrc_DOC_
 
 _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
@@ -201,7 +200,7 @@ For developers/maintainers:
 Exports (variables):
   Non-public: (i.e., for use in this script, or by other things in EWT_HOME.)
     - _EWTRC_VERBOSE: Encodes whether it's safe to print to stdout/stderr.
-        (Allows verbose error reporting without breaking tools like `scp`.)
+        (Allows verbose error reporting without breaking tools like scp.)
     - _EWTRC_ONLINE_NODES: A colon-seperated list of the hostnames of nodes that
         have access to the internet.
     - _EWTRC_LUSTRE_GROUPS_ROOT: The path to the lustre directory that houses
@@ -213,20 +212,21 @@ Exports (variables):
 
 Exports (functions):
   Non-public:
-    - _ewtrc_echo: _EWTRC_VERBOSE-aware replacement for `echo`; use it in any
-        code that might run during `scp` operations or similar.
+    - _ewtrc_echo: _EWTRC_VERBOSE-aware replacement for echo; use it in any
+        code that might run during scp operations (or similar).
     - _ewtrc_derive_dirname: (Crudely) resolves the directory that hosts the
         source file it's called in. This should ONLY be used to detect where
-        run scripts like this one reside, so the user needn't do anything more
-        than sourcing said script in their .bashrc file.
+        run scripts like this one reside, so the user isn't burdened with
+        manually setting variables like EWT_HOME. (It's better if they do, but
+        it's best if we don't expect it of them.)
     - _ewtrc_loaded_ok: Checks that the calling environment resembles one where
         ewtrc.bash was sourced without error. It acts as a safeguard; when
-        called at the start of a script, it allows the author to confidently
-        presume that the various bits provided by this script exist in their
-        environment; i.e., it frees the author up because they don't need to
-        check for existence around every corner.
+        called at the start of a script, it allows said script's author to
+        confidently presume that the various bits provided by this script exist
+        in it's environment; i.e., said author doesn't need to check for
+        existence around every corner.
         Example usage:
           declare -F _ewtrc_loaded_ok &>/dev/null && $_ || exit 42
-        (We use exit code 42 to free up the lower codes for the authors' use,
+        (We use exit code 42 to free up the lower codes for script authors' use,
         and so such a failure is easily recognisable.)
 __ewtrc_DOC_dev_
