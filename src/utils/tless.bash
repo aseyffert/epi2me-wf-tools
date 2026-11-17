@@ -1,4 +1,4 @@
-# Displays TSV files with spurious spaces correctly in less (e.g., trace.txt).
+# Renders TSV (and CSV) files with spurious spaces sensibly via less.
 tless() {
   # Guards against blocking call to column; fails like less does with no file.
   (($# == 0)) && [[ -t 0 ]] && {
