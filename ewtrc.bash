@@ -6,14 +6,14 @@ Usage:
 
     source EWT_HOME/ewtrc.bash
 
-  Example: source /home/user/epi2me-wf-tools/ewtrc.bash
+  Example: source /home/rfranklin/epi2me-wf-tools/ewtrc.bash
 
   To have ewtrc.bash run at login, add the above line
   toward the end of your $HOME/.bashrc. While ewtrc.bash can derive EWT_HOME from
   the path you provide, you can also set it yourself to make your .bashrc more
   readable; e.g.,
 
-    EWT_HOME=/home/user/epi2me-wf-tools
+    EWT_HOME=/home/rfranklin/epi2me-wf-tools
     source "$EWT_HOME/ewtrc.bash"
 
 Description:
