@@ -110,12 +110,19 @@ _ewtrc_online_node() { [[ :$_EWTRC_ONLINE_NODES: == *":$(hostname):"* ]]; }
 # Checks that the calling environment resembles one where ewtrc.bash succeeded.
 _ewtrc_loaded_ok() {
   [[ -v _EWTRC_ONLINE_NODES ]] || return
+  declare -F _ewtrc_online_node &>/dev/null || return
   local -a funcs vars
-  funcs=(_ewtrc_{verbose,echo,derive_dirname,constrain_paths})
-  vars=(EWT_HOME USER_LUSTRE NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG})
-  _ewtrc_online_node &&
-    vars+=(NXF_OFFLINE) ||
+  funcs=(_ewtrc_{verbose,echo,derive_dirname})
+  vars=(
+    {EWT,NXF}_HOME _EWTRC_LUSTRE_{GROUPS,USERS}_ROOT USER_LUSTRE
+    NXF_{WORK,SINGULARITY_CACHEDIR,ANSI_LOG}
+  )
+  if _ewtrc_online_node; then
     vars+=(NXF_DISABLE_CHECK_LATEST SINGULARITY_DISABLE_CACHE)
+  else
+    vars+=(NXF_OFFLINE)
+  fi
+  [[ $- == *i* ]] && vars+=(NXF_ANSI_LOG)
 
   declare -F "${funcs[@]}" &>/dev/null &&
     declare -p "${vars[@]}" &>/dev/null &&
