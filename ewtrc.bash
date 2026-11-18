@@ -136,15 +136,14 @@ _ewtrc_loaded_ok() {
 
 # Ensures that ewtrc.bash does not polute the user's environment.
 ewtrc_cleanup() {
-  unset -v _ewtrc_lustre_{groups,users}_root
-  unset -f ewtrc_cleanup
+  unset -v ewtrc_qopt
+  unset -f constrain_paths ewtrc_cleanup
 }
 
 # --- Environment setup ---
 ## --- In-package sources ---
 # We do this up front because source calls don't play nice with traps on RETURN.
 source "$EWT_HOME/src/utils/constrain_paths.bash"
-export -f constrain_paths
 
 ## --- Site-specific constants ---
 _EWTRC_ONLINE_NODES='login1:dtn'
@@ -193,8 +192,8 @@ constrain_paths "$ewtrc_qopt" 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   return 6
 export NXF_{WORK,SINGULARITY_CACHEDIR} {EWT,NXF}_HOME
 
-trap - RETURN
 ewtrc_cleanup
+trap - RETURN
 
 # === SOURCE CALL EMBARGO LIFTED ===
 
