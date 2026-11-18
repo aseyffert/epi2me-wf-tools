@@ -133,7 +133,10 @@ ewtrc_cleanup() {
 
 source "$EWT_HOME/src/utils/constrain_paths.bash"
 export -f constrain_paths
-[[ $- == *i* ]] && source "$EWT_HOME/src/utils/tless.bash" && export -f tless
+[[ $- == *i* ]] && {
+  source "$EWT_HOME/src/utils/tless.bash"
+  export -f tless
+}
 
 ## --- Constants ---
 ewtrc_online_nodes=('login1' 'dtn')
