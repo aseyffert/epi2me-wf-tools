@@ -136,10 +136,6 @@ ewtrc_cleanup() {
 # We do this up front because source calls don't play nice with traps on RETURN.
 source "$EWT_HOME/src/utils/constrain_paths.bash"
 export -f constrain_paths
-[[ $- == *i* ]] && {
-  source "$EWT_HOME/src/utils/tless.bash"
-  export -f tless
-}
 
 ## --- Site-specific constants ---
 ewtrc_online_nodes=('login1' 'dtn')
@@ -166,7 +162,7 @@ export _EWTRC_{ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 # NOTE:   The trap reset must happen in the global scope.
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
-# NB: === NO SOURCE CALLS BEYOND THIS POINT! ===
+# NB: === NO SOURCE CALLS WHILE ABOVE TRAP IS IN EFFECT! ===
 
 ## --- Module loads ---
 # This is actually just a call to `module use` that prepends the appropriate
@@ -189,6 +185,12 @@ constrain_paths "$ewtrc_qopt" 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   return 6
 export NXF_{WORK,SINGULARITY_CACHEDIR} {EWT,NXF}_HOME
 
+trap - RETURN
+ewtrc_cleanup
+
+# === SOURCE CALL EMBARGO LIFTED ===
+
+## --- Internet access-related setup ---
 # "If we're running on a node with access to the internet."
 if [[ " ${ewtrc_online_nodes[*]} " == *" $(hostname) "* ]]; then
   export NXF_DISABLE_CHECK_LATEST='true'
@@ -204,13 +206,16 @@ fi
 # Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
 alias cd='cd -P'
 
-## --- Interactive sessions-only setup ---
-[[ $- == *i* ]] || {
-  # Nextflow handles the interactive case.
-  export NXF_ANSI_LOG='false'
+## --- (Non-)interactive session-only setup ---
+if [[ $- == *i* ]]; then
+  source "$EWT_HOME/src/utils/tless.bash"
+  export -f tless
   # Run `less` with ANSI colors support (used in nextflow log files) by default.
   alias less="less -R"
-}
+else
+  # Nextflow handles the interactive case.
+  export NXF_ANSI_LOG='false'
+fi
 
 # --- Documentation (devs/maintainers) ---
 : <<'__ewtrc_DOC_dev_'
