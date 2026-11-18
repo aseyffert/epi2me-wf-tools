@@ -80,6 +80,13 @@ _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
   exit 1
 }
 
+[[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
+  _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
+  unset EWT_HOME
+  ewtrc_cleanup
+  return 3
+}
+
 # --- Function definitions ---
 # Resolves the (absolute) dirname for a given path.
 # NOTE:   _ewtrc_derive_dirname cannot be broken out into src/utils because
@@ -124,13 +131,6 @@ ewtrc_cleanup() {
 }
 
 # --- Environment setup ---
-[[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
-  _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
-  unset EWT_HOME
-  ewtrc_cleanup
-  return 3
-}
-
 source "$EWT_HOME/src/utils/constrain_paths.bash"
 export -f constrain_paths
 [[ $- == *i* ]] && {
