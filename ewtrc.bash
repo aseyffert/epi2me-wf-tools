@@ -97,7 +97,7 @@ _ewtrc_loaded_ok() {
 
   declare -F "${funcs[@]}" &>/dev/null &&
     declare -p "${vars[@]}" &>/dev/null &&
-    [[ $PATH =~ $EWT_HOME/tools ]]
+    [[ :$PATH: == ":$EWT_HOME/tools:" ]]
   # TODO: Add check for the nextflow and singularity modules
   # TODO: Implement a sensible check that -P is in effect for cd on non-cnodes.
   # option:
@@ -185,7 +185,7 @@ else
   export NXF_OFFLINE='true'
 fi
 
-[[ $PATH =~ $EWT_HOME/tools ]] || export PATH=$EWT_HOME/tools:$PATH
+[[ :$PATH: == ":$EWT_HOME/tools:" ]] || export PATH=$EWT_HOME/tools:$PATH
 
 # Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
 alias cd='cd -P'
