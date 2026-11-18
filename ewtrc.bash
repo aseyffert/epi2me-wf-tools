@@ -107,11 +107,10 @@ _ewtrc_derive_dirname() {
 # Checks that the calling environment resembles one where ewtrc.bash succeeded.
 _ewtrc_loaded_ok() {
   [[ -v _EWTRC_ONLINE_NODES ]] || return
-  local -a funcs vars online_nodes
+  local -a funcs vars
   funcs=(_ewtrc_{verbose,echo,derive_dirname,constrain_paths})
   vars=(EWT_HOME USER_LUSTRE NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG})
-  IFS=':' read -ra online_nodes <<<"$_EWTRC_ONLINE_NODES"
-  [[ " ${online_nodes[*]} " == *" $(hostname) "* ]] &&
+  [[ :$_EWTRC_ONLINE_NODES: == *":$(hostname):"* ]] &&
     vars+=(NXF_OFFLINE) ||
     vars+=(NXF_DISABLE_CHECK_LATEST SINGULARITY_DISABLE_CACHE)
 
@@ -138,12 +137,11 @@ source "$EWT_HOME/src/utils/constrain_paths.bash"
 export -f constrain_paths
 
 ## --- Site-specific constants ---
-ewtrc_online_nodes=('login1' 'dtn')
+_EWTRC_ONLINE_NODES='login1:dtn'
 _EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
 _EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 
 ## --- Derived vars ---
-IFS=':' _EWTRC_ONLINE_NODES=${ewtrc_online_nodes[*]}
 export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 
 ### --- Respectful vars ---
@@ -192,7 +190,7 @@ ewtrc_cleanup
 
 ## --- Internet access-related setup ---
 # "If we're running on a node with access to the internet."
-if [[ " ${ewtrc_online_nodes[*]} " == *" $(hostname) "* ]]; then
+if [[ :$_EWTRC_ONLINE_NODES: == *":$(hostname):"* ]]; then
   export NXF_DISABLE_CHECK_LATEST='true'
   export SINGULARITY_DISABLE_CACHE='true'
 else
