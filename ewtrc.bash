@@ -113,7 +113,7 @@ ewtrc_cleanup() {
 
 # NOTE:   The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
 #           but that suppresses error reporting for interactive jobs as well.
-[[ $- =~ 'i' ]] && _EWTRC_VERBOSE=1 || _EWTRC_VERBOSE=0
+[[ $- == *i* ]] && _EWTRC_VERBOSE=1 || _EWTRC_VERBOSE=0
 
 [[ ${BASH_SOURCE[0]} != "$0" ]] || {
   _ewtrc_echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
@@ -130,7 +130,7 @@ ewtrc_cleanup() {
 
 source "$EWT_HOME/src/utils/constrain_paths.bash"
 export -f constrain_paths
-[[ $- =~ 'i' ]] && source "$EWT_HOME/src/utils/tless.bash" && export -f tless
+[[ $- == *i* ]] && source "$EWT_HOME/src/utils/tless.bash" && export -f tless
 
 # --- Constants ---
 ewtrc_online_nodes=('login1' 'dtn')
@@ -190,7 +190,7 @@ fi
 # Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
 alias cd='cd -P'
 
-[[ $- =~ 'i' ]] || {
+[[ $- == *i* ]] || {
   # Nextflow handles the interactive case.
   export NXF_ANSI_LOG='false'
   # Run `less` with ANSI colors support (used in nextflow log files) by default.
