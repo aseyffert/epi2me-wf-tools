@@ -93,9 +93,11 @@ _ewtrc_derive_dirname() {
   exit 1
 }
 
+# Derive EWT_HOME if it wasn't provided.
 [[ -v EWT_HOME ]] || {
   EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || unset EWT_HOME
 }
+
 [[ -v EWT_HOME ]] || {
   _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
   return 3
