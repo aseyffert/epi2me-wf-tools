@@ -132,6 +132,8 @@ ewtrc_cleanup() {
 }
 
 # --- Environment setup ---
+## --- In-package sources ---
+# We do this up front because source calls don't play nice with traps on RETURN.
 source "$EWT_HOME/src/utils/constrain_paths.bash"
 export -f constrain_paths
 [[ $- == *i* ]] && {
@@ -148,10 +150,6 @@ _EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 IFS=':' _EWTRC_ONLINE_NODES=${ewtrc_online_nodes[*]}
 export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 
-## --- Provided non-public vars/funcs ---
-export -f _ewtrc_{verbose,echo,derive_dirname,loaded_ok}
-export _EWTRC_{ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
-
 ### --- Respectful vars ---
 # (i.e., vars that can be set by the user before sourcing ewtrc.bash)
 # NB:     This fallback for NXF_WORK should not be treated as a default!
@@ -160,6 +158,10 @@ export _EWTRC_{ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 : "${NXF_HOME:=$HOME/.nextflow}"
 : "${NXF_WORK:=$USER_LUSTRE/nextflow_work}"
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
+
+## --- Provided non-public vars/funcs ---
+export -f _ewtrc_{verbose,echo,derive_dirname,loaded_ok}
+export _EWTRC_{ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 
 # NOTE:   The trap reset must happen in the global scope.
 trap 'ewtrc_cleanup; trap - RETURN' RETURN
@@ -187,6 +189,7 @@ constrain_paths "$ewtrc_qopt" 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   return 6
 export NXF_{WORK,SINGULARITY_CACHEDIR} {EWT,NXF}_HOME
 
+# "If we're running on a node with access to the internet."
 if [[ " ${ewtrc_online_nodes[*]} " == *" $(hostname) "* ]]; then
   export NXF_DISABLE_CHECK_LATEST='true'
   export SINGULARITY_DISABLE_CACHE='true'
@@ -194,6 +197,7 @@ else
   export NXF_OFFLINE='true'
 fi
 
+# This check ensures that subsequent `source ewtrc.bash` calls don't add copies.
 [[ :$PATH: == ":$EWT_HOME/tools:" ]] || export PATH=$EWT_HOME/tools:$PATH
 
 ## --- Aliases (all nodes/sessions) ---
