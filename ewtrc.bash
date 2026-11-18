@@ -104,13 +104,16 @@ _ewtrc_derive_dirname() {
 }
 
 # --- Function definitions ---
+# Checks whether the node (nominally) has access to the internet.
+_ewtrc_online_node() { [[ :$_EWTRC_ONLINE_NODES: == *":$(hostname):"* ]]; }
+
 # Checks that the calling environment resembles one where ewtrc.bash succeeded.
 _ewtrc_loaded_ok() {
   [[ -v _EWTRC_ONLINE_NODES ]] || return
   local -a funcs vars
   funcs=(_ewtrc_{verbose,echo,derive_dirname,constrain_paths})
   vars=(EWT_HOME USER_LUSTRE NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG})
-  [[ :$_EWTRC_ONLINE_NODES: == *":$(hostname):"* ]] &&
+  _ewtrc_online_node &&
     vars+=(NXF_OFFLINE) ||
     vars+=(NXF_DISABLE_CHECK_LATEST SINGULARITY_DISABLE_CACHE)
 
@@ -154,7 +157,7 @@ export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 : "${NXF_SINGULARITY_CACHEDIR:=$USER_LUSTRE/singularity_cache}"
 
 ## --- Provided non-public vars/funcs ---
-export -f _ewtrc_{verbose,echo,derive_dirname,loaded_ok}
+export -f _ewtrc_{verbose,echo,derive_dirname,online_node,loaded_ok}
 export _EWTRC_{ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 
 # NOTE:   The trap reset must happen in the global scope.
@@ -190,7 +193,7 @@ ewtrc_cleanup
 
 ## --- Internet access-related setup ---
 # "If we're running on a node with access to the internet."
-if [[ :$_EWTRC_ONLINE_NODES: == *":$(hostname):"* ]]; then
+if _ewtrc_online_node; then
   export NXF_DISABLE_CHECK_LATEST='true'
   export SINGULARITY_DISABLE_CACHE='true'
 else
@@ -244,6 +247,12 @@ Exports (functions):
         run scripts like this one reside, so the user isn't burdened with
         manually setting variables like EWT_HOME. (It's better if they do, but
         it's best if we don't expect it of them.)
+    - _ewtrc_online_node: Checks whether the host node (nominally) has access
+        to the internet; i.e., whether it is one of the nodes listed in
+        _EWTRC_ONLINE_NODES.
+        (NOTE: This implementation assumes that _EWTRC_ONLINE_NODES -- currently
+          implemented as a site-specific constant -- is constructed such as to
+          be compatible with the output of a "hostname" call.)
     - _ewtrc_loaded_ok: Checks that the calling environment resembles one where
         ewtrc.bash was sourced without error. It acts as a safeguard; when
         called at the start of a script, it allows said script's author to
