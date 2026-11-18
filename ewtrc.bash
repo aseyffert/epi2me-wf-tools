@@ -65,8 +65,13 @@ Exports (functions):
         (Only exported for interactive sessions; See "tless -h" for usage.)
 __ewtrc_DOC_
 
+# An echo replacement that's safe to use in initialisation scripts; i.e., that's
+#   safe to use in scripts sourced in .bashrc or similar.
 _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
 
+# Resolves the (absolute) dirname for a given path.
+# NOTE:   _ewtrc_derive_dirname cannot be broken out into src/utils because
+#           sourcing from there requires EWT_HOME be resolved first.
 _ewtrc_derive_dirname() {
   local full_path
   full_path="$(realpath "$1" 2>/dev/null)" || {
@@ -76,8 +81,8 @@ _ewtrc_derive_dirname() {
   echo "${full_path%/*}"
 }
 
+# Checks that the calling environment resembles one where ewtrc.bash succeeded.
 _ewtrc_loaded_ok() {
-  # Checks that the work ewtrc.bash does has been done in calling environment.
   [[ -v _EWTRC_ONLINE_NODES ]] || return
   local -a funcs vars online_nodes
   funcs=(_ewtrc_{echo,derive_dirname,constrain_paths})
@@ -100,6 +105,7 @@ _ewtrc_loaded_ok() {
   #     [[ $val == "'cd -P'" ]] || return
 }
 
+# Ensures that ewtrc.bash does not polute the user's environment.
 ewtrc_cleanup() {
   unset -v _ewtrc_lustre_{groups,users}_root
   unset -f ewtrc_cleanup
