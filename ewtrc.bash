@@ -67,27 +67,15 @@ Exports (functions):
 __ewtrc_DOC_
 
 # --- Preflight checks ---
+# Checks whether it's safe for initialisation scripts to print to stdout/stderr.
+# NOTE:   The PBS User Guide suggests adding [[ -v PBS_ENVIRONMENT ]] to this,
+#           but that suppresses error reporting for interactive jobs as well.
+_ewtrc_verbose() { [[ $- == *i* ]]; }
+
 # An echo replacement that's safe to use in initialisation scripts; i.e., that's
 #   safe to use in scripts sourced in .bashrc or similar.
-_ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
+_ewtrc_echo() { _ewtrc_verbose && echo -e "$@"; }
 
-# NOTE:   The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
-#           but that suppresses error reporting for interactive jobs as well.
-[[ $- == *i* ]] && _EWTRC_VERBOSE=1 || _EWTRC_VERBOSE=0
-
-[[ ${BASH_SOURCE[0]} != "$0" ]] || {
-  _ewtrc_echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
-  exit 1
-}
-
-[[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
-  _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
-  unset EWT_HOME
-  ewtrc_cleanup
-  return 3
-}
-
-# --- Function definitions ---
 # Resolves the (absolute) dirname for a given path.
 # NOTE:   _ewtrc_derive_dirname cannot be broken out into src/utils because
 #           sourcing from there requires EWT_HOME be resolved first.
@@ -100,15 +88,26 @@ _ewtrc_derive_dirname() {
   echo "${full_path%/*}"
 }
 
+[[ ${BASH_SOURCE[0]} != "$0" ]] || {
+  _ewtrc_echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
+  exit 1
+}
+
+[[ -v EWT_HOME ]] || {
+  EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || unset EWT_HOME
+}
+[[ -v EWT_HOME ]] || {
+  _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
+  return 3
+}
+
+# --- Function definitions ---
 # Checks that the calling environment resembles one where ewtrc.bash succeeded.
 _ewtrc_loaded_ok() {
   [[ -v _EWTRC_ONLINE_NODES ]] || return
   local -a funcs vars online_nodes
-  funcs=(_ewtrc_{echo,derive_dirname,constrain_paths})
-  vars=(
-    _EWTRC_VERBOSE EWT_HOME USER_LUSTRE
-    NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG}
-  )
+  funcs=(_ewtrc_{verbose,echo,derive_dirname,constrain_paths})
+  vars=(EWT_HOME USER_LUSTRE NXF_{WORK,HOME,SINGULARITY_CACHEDIR,ANSI_LOG})
   IFS=':' read -ra online_nodes <<<"$_EWTRC_ONLINE_NODES"
   [[ " ${online_nodes[*]} " == *" $(hostname) "* ]] &&
     vars+=(NXF_OFFLINE) ||
@@ -138,18 +137,18 @@ export -f constrain_paths
   export -f tless
 }
 
-## --- Constants ---
+## --- Site-specific constants ---
 ewtrc_online_nodes=('login1' 'dtn')
-IFS=':' _EWTRC_ONLINE_NODES=${ewtrc_online_nodes[*]}
 _EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
 _EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 
-## --- Provided vars/funcs ---
-export -f _ewtrc_{echo,derive_dirname,loaded_ok}
-export _EWTRC_{VERBOSE,ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
-
 ## --- Derived vars ---
+IFS=':' _EWTRC_ONLINE_NODES=${ewtrc_online_nodes[*]}
 export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
+
+## --- Provided non-public vars/funcs ---
+export -f _ewtrc_{verbose,echo,derive_dirname,loaded_ok}
+export _EWTRC_{ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 
 ### --- Respectful vars ---
 # (i.e., vars that can be set by the user before sourcing ewtrc.bash)
@@ -179,7 +178,7 @@ module load nextflow chpc/singularity 2>/dev/null || {
 
 ## --- Pathy variables handling ---
 # NOTE:   Pathy vars checked here should not be exported before this check.
-((_EWTRC_VERBOSE)) && unset ewtrc_qopt || ewtrc_qopt='-q'
+_ewtrc_verbose && unset ewtrc_qopt || ewtrc_qopt='-q'
 constrain_paths "$ewtrc_qopt" 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
   constrain_paths "$ewtrc_qopt" EWT_HOME "${!_EWTRC_LUSTRE_@}" HOME &&
   constrain_paths "$ewtrc_qopt" NXF_HOME USER_LUSTRE HOME ||
@@ -216,8 +215,6 @@ For developers/maintainers:
 
 Exports (variables):
   Non-public: (i.e., for use in this script, or by other things in EWT_HOME.)
-    - _EWTRC_VERBOSE: Encodes whether it's safe to print to stdout/stderr.
-        (Allows verbose error reporting without breaking tools like scp.)
     - _EWTRC_ONLINE_NODES: A colon-seperated list of the hostnames of nodes that
         have access to the internet.
     - _EWTRC_LUSTRE_GROUPS_ROOT: The path to the lustre directory that houses
@@ -229,7 +226,9 @@ Exports (variables):
 
 Exports (functions):
   Non-public:
-    - _ewtrc_echo: _EWTRC_VERBOSE-aware replacement for echo; use it in any
+    - _ewtrc_verbose: Encodes whether it's safe to print to stdout/stderr.
+        (Allows verbose error reporting without breaking tools like scp.)
+    - _ewtrc_echo: _ewtrc_verbose-aware replacement for echo; use it in any
         code that might run during scp operations (or similar).
     - _ewtrc_derive_dirname: (Crudely) resolves the directory that hosts the
         source file it's called in. This should ONLY be used to detect where
