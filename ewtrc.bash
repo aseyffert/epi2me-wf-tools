@@ -69,6 +69,15 @@ __ewtrc_DOC_
 #   safe to use in scripts sourced in .bashrc or similar.
 _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
 
+# NOTE:   The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
+#           but that suppresses error reporting for interactive jobs as well.
+[[ $- == *i* ]] && _EWTRC_VERBOSE=1 || _EWTRC_VERBOSE=0
+
+[[ ${BASH_SOURCE[0]} != "$0" ]] || {
+  _ewtrc_echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
+  exit 1
+}
+
 # Resolves the (absolute) dirname for a given path.
 # NOTE:   _ewtrc_derive_dirname cannot be broken out into src/utils because
 #           sourcing from there requires EWT_HOME be resolved first.
@@ -109,15 +118,6 @@ _ewtrc_loaded_ok() {
 ewtrc_cleanup() {
   unset -v _ewtrc_lustre_{groups,users}_root
   unset -f ewtrc_cleanup
-}
-
-# NOTE:   The PBS User Guide suggests [[ -v PBS_ENVIRONMENT ]] for this check,
-#           but that suppresses error reporting for interactive jobs as well.
-[[ $- == *i* ]] && _EWTRC_VERBOSE=1 || _EWTRC_VERBOSE=0
-
-[[ ${BASH_SOURCE[0]} != "$0" ]] || {
-  _ewtrc_echo >&2 "ERROR: ${BASH_SOURCE[0]} can only be sourced."
-  exit 1
 }
 
 # EWT part
