@@ -1,5 +1,6 @@
 # Prepares the user's environment to run EPI2ME workflows on the CHPC.
 
+# --- Documentation ---
 : <<'__ewtrc_DOC_'
 Usage:
   With ewtrc.bash located in directory EWT_HOME, do
@@ -65,6 +66,7 @@ Exports (functions):
         (Only exported for interactive sessions; See "tless -h" for usage.)
 __ewtrc_DOC_
 
+# --- Preflight checks ---
 # An echo replacement that's safe to use in initialisation scripts; i.e., that's
 #   safe to use in scripts sourced in .bashrc or similar.
 _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
@@ -78,6 +80,7 @@ _ewtrc_echo() { ((_EWTRC_VERBOSE)) && echo -e "$@"; }
   exit 1
 }
 
+# --- Function definitions ---
 # Resolves the (absolute) dirname for a given path.
 # NOTE:   _ewtrc_derive_dirname cannot be broken out into src/utils because
 #           sourcing from there requires EWT_HOME be resolved first.
@@ -120,7 +123,7 @@ ewtrc_cleanup() {
   unset -f ewtrc_cleanup
 }
 
-# EWT part
+# --- Environment setup ---
 [[ -v EWT_HOME ]] || EWT_HOME=$(_ewtrc_derive_dirname "${BASH_SOURCE[0]}") || {
   _ewtrc_echo >&2 'ERROR: Unable to resolve EWT_HOME.'
   unset EWT_HOME
@@ -132,20 +135,20 @@ source "$EWT_HOME/src/utils/constrain_paths.bash"
 export -f constrain_paths
 [[ $- == *i* ]] && source "$EWT_HOME/src/utils/tless.bash" && export -f tless
 
-# --- Constants ---
+## --- Constants ---
 ewtrc_online_nodes=('login1' 'dtn')
 IFS=':' _EWTRC_ONLINE_NODES=${ewtrc_online_nodes[*]}
 _EWTRC_LUSTRE_GROUPS_ROOT=/mnt/lustre/groups
 _EWTRC_LUSTRE_USERS_ROOT=/mnt/lustre/users
 
-# --- Provided vars/funcs ---
+## --- Provided vars/funcs ---
 export -f _ewtrc_{echo,derive_dirname,loaded_ok}
 export _EWTRC_{VERBOSE,ONLINE_NODES,LUSTRE_{GROUPS,USERS}_ROOT}
 
-# --- Derived vars ---
+## --- Derived vars ---
 export USER_LUSTRE=$_EWTRC_LUSTRE_USERS_ROOT/$USER
 
-## --- Respectful vars ---
+### --- Respectful vars ---
 # (i.e., vars that can be set by the user before sourcing ewtrc.bash)
 # NB:     This fallback for NXF_WORK should not be treated as a default!
 #           None of the tools that this package provides are designed to use
@@ -159,6 +162,7 @@ trap 'ewtrc_cleanup; trap - RETURN' RETURN
 
 # NB: === NO SOURCE CALLS BEYOND THIS POINT! ===
 
+## --- Module loads ---
 # This is actually just a call to `module use` that prepends the appropriate
 #   directory (which houses the nextflow module, among others) to MODULEPATH.
 module load chpc/BIOMODULES || {
@@ -170,6 +174,7 @@ module load nextflow chpc/singularity 2>/dev/null || {
   return 5
 }
 
+## --- Pathy variables handling ---
 # NOTE:   Pathy vars checked here should not be exported before this check.
 ((_EWTRC_VERBOSE)) && unset ewtrc_qopt || ewtrc_qopt='-q'
 constrain_paths "$ewtrc_qopt" 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
@@ -187,9 +192,11 @@ fi
 
 [[ :$PATH: == ":$EWT_HOME/tools:" ]] || export PATH=$EWT_HOME/tools:$PATH
 
+## --- Aliases (all nodes/sessions) ---
 # Prevents HOME from leaking into nextflow's singularity auto mounts via PWD.
 alias cd='cd -P'
 
+## --- Interactive sessions-only setup ---
 [[ $- == *i* ]] || {
   # Nextflow handles the interactive case.
   export NXF_ANSI_LOG='false'
@@ -197,6 +204,7 @@ alias cd='cd -P'
   alias less="less -R"
 }
 
+# --- Documentation (devs/maintainers) ---
 : <<'__ewtrc_DOC_dev_'
 For developers/maintainers:
   In addition to what is documented in __ewtrc_DOC_, ewtrc.bash provides a
