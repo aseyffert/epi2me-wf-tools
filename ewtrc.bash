@@ -136,7 +136,7 @@ _ewtrc_loaded_ok() {
 
 # Ensures that ewtrc.bash does not polute the user's environment.
 ewtrc_cleanup() {
-  unset -v ewtrc_qopt
+  alias constrain_paths &>/dev/null && unalias constrain_paths
   unset -f constrain_paths ewtrc_cleanup
 }
 
@@ -144,6 +144,7 @@ ewtrc_cleanup() {
 ## --- In-package sources ---
 # We do this up front because source calls don't play nice with traps on RETURN.
 source "$EWT_HOME/src/utils/constrain_paths.bash"
+! _ewtrc_verbose && alias constrain_paths='constrain_paths -q'
 
 ## --- Site-specific constants ---
 _EWTRC_ONLINE_NODES='login1:dtn'
@@ -185,10 +186,9 @@ module load nextflow chpc/singularity 2>/dev/null || {
 
 ## --- Pathy variables handling ---
 # NOTE:   Pathy vars checked here should not be exported before this check.
-_ewtrc_verbose && unset ewtrc_qopt || ewtrc_qopt='-q'
-constrain_paths "$ewtrc_qopt" 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
-  constrain_paths "$ewtrc_qopt" EWT_HOME "${!_EWTRC_LUSTRE_@}" HOME &&
-  constrain_paths "$ewtrc_qopt" NXF_HOME USER_LUSTRE HOME ||
+constrain_paths 'NXF_WORK NXF_SINGULARITY_CACHEDIR' USER_LUSTRE &&
+  constrain_paths EWT_HOME "${!_EWTRC_LUSTRE_@}" HOME &&
+  constrain_paths NXF_HOME USER_LUSTRE HOME ||
   return 6
 export NXF_{WORK,SINGULARITY_CACHEDIR} {EWT,NXF}_HOME
 
